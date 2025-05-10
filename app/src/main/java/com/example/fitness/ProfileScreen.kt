@@ -15,19 +15,14 @@ fun ProfileScreen(navController: NavController) {
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp),
-        verticalArrangement = Arrangement.SpaceBetween // Đẩy phần dưới cùng xuống
+        verticalArrangement = Arrangement.SpaceBetween
     ) {
-        // Tiêu đề ở trên cùng
         Text(
             text = "Hồ sơ",
             style = MaterialTheme.typography.headlineMedium,
             color = MaterialTheme.colorScheme.primary
         )
-
-        // Chỗ này bạn có thể thêm các nội dung hồ sơ như tên, email, v.v.
-        Spacer(modifier = Modifier.weight(1f)) // Đẩy phần dưới cùng xuống
-
-        // Nút ở dưới cùng
+        Spacer(modifier = Modifier.weight(1f))
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
@@ -38,15 +33,20 @@ fun ProfileScreen(navController: NavController) {
             ) {
                 Text("Quay về")
             }
-
-            Spacer(modifier = Modifier.width(16.dp)) // Khoảng cách giữa 2 nút
-
+            Spacer(modifier = Modifier.width(16.dp))
             Button(
-                onClick = { /* TODO: Xử lý đăng xuất */ },
+                onClick = {
+                    navController.navigate("home") {
+                        popUpTo(navController.graph.id) {
+                            inclusive = true
+                        }
+                        launchSingleTop = true
+                    }
+                },
                 modifier = Modifier.weight(1f),
                 colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
             ) {
-                Text("Đăng xuấthhhhh", color = Color.White)
+                Text("Đăng xuất", color = Color.White)
             }
         }
     }
