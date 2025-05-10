@@ -28,10 +28,10 @@ fun HomeScreen(navController: NavController) {
     ) {
         Column(
             modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally // Center the content horizontally
         ) {
             Text(
-                text = "Trang chủ",
+                text = "Bài tập",
                 style = TextStyle(
                     fontWeight = FontWeight.Bold,
                     fontSize = 24.sp,
@@ -42,18 +42,19 @@ fun HomeScreen(navController: NavController) {
 
             LazyVerticalGrid(
                 columns = GridCells.Fixed(2),
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .wrapContentWidth(Alignment.CenterHorizontally), // Center the grid
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 val cardData = listOf(
-                    CardData("Tuổi: 18-29", R.drawable.nho, "age18to29"),
-                    CardData("Tuổi: 30-49", R.drawable.nguoi_lon, "age30to39"),
-                    CardData("Tuổi: 50+", R.drawable.download, "age50plus"),
-                    CardData("Bài tập A", R.drawable.ic_launcher_foreground, "workouta"),
-                    CardData("Bài tập B", R.drawable.ic_launcher_foreground, "workoutb"),
-                    CardData("Bài tập C", R.drawable.ic_launcher_foreground, "workoutc"),
-                    CardData("Bài tập D", R.drawable.ic_launcher_foreground, "workoutd")
+                    CardData("Tuổi: 18-29", R.drawable.nhocc, "AgeDetailsScreen/18-29"),
+                    CardData("Tuổi: 30-49", R.drawable.lon1, "AgeDetailsScreen/30-49"),
+                    CardData("Tuổi: 50+", R.drawable.onggia, "AgeDetailsScreen/50+"),
+                    CardData("Võ", R.drawable.vo, "AgeDetailsScreen"),
+                    CardData("Yoga", R.drawable.yoga2, "AgeDetailsScreen"),
+
                 )
                 items(cardData) { card ->
                     AgeCategoryCard(
@@ -92,3 +93,4 @@ fun HomeScreen(navController: NavController) {
 }
 
 data class CardData(val title: String, val imageResourceId: Int, val route: String)
+
