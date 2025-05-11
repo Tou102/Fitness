@@ -22,10 +22,16 @@ fun AppNavigation(navController: NavHostController) {
     NavHost(navController = navController, startDestination = "login") {
         composable("login") { LoginScreen(navController) }
         composable("home") { HomeScreen(navController) }
-        composable("profile") { ProfileScreen(navController) }
         composable("nutrition") { NutritionScreen(navController) }
-        composable("water_detail") { WaterDetailScreen(navController) }
-        composable("vegetable_detail") { VegetableDetailScreen(navController) }
+        composable("anlong_detail") { AnLongChiTiet(navController) }
+        composable("ankieng_detail") { AnKiengChiTiet(navController) }
+        composable("calo_detail") { CaloChiTiet(navController) }
+        composable("choles_detail") { CholesterolChiTiet(navController) }
+        composable("anchay_detail") { AnChayChiTiet(navController) }
+        composable("natri_detail") { NatriChiTiet(navController) }
+        composable("protein_detail") { ProteinThapChiTiet(navController) }
+        composable("profile") { ProfileScreen(navController) }
+
         // Added the workout details routes
         composable(
             "ageDetails/{ageRange}",
@@ -37,6 +43,22 @@ fun AppNavigation(navController: NavHostController) {
         composable("workoutDetails/{workoutType}") { backStackEntry ->  // Thêm route mới
             val workoutType = backStackEntry.arguments?.getString("workoutType")
             WorkoutDetailScreen(workoutType = workoutType, navController = navController) // Gọi Composable mới và truyền navController
+        }
+    }
+}
+
+@Composable
+fun ChiTietAnLong(navController: NavHostController) {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.SpaceBetween, // Pushes elements to top and bottom
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        // Screen content for Age Details
+        Text(text = "Age Details for: $", style = MaterialTheme.typography.headlineMedium)
+        // Back button
+        Button(onClick = { navController.popBackStack() }) {
+            Text(text = "Quay về")
         }
     }
 }

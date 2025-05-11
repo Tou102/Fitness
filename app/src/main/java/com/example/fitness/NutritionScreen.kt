@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 
 @Composable
+
 fun NutritionScreen(navController: NavHostController) {
     Column(
         modifier = Modifier
@@ -34,47 +35,55 @@ fun NutritionScreen(navController: NavHostController) {
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             items(nutritionItems) { item ->
-                NutritionCard(item = item, onClick = {
-                    when (item.title) {
-                        "Uống nước" -> navController.navigate("water_detail")
-                        "Rau củ" -> navController.navigate("vegetable_detail")
-                        else -> {} // Hoặc xử lý các mục khác sau
-                    }
-                })
+                NutritionCard(item = item, navController = navController)
             }
         }
 
-        Row(
+        Row( // Thêm Row để chứa hai nút
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
+            horizontalArrangement = Arrangement.SpaceBetween // Để các nút ở hai đầu
         ) {
             Button(
-                onClick = { navController.navigate("home") },
-                modifier = Modifier.weight(1f)
+                onClick = { navController.navigate("home") }, // Điều hướng về "home"
+                modifier = Modifier.weight(1f) // Chia đều không gian
             ) {
                 Text("Quay lại")
             }
 
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(16.dp)) // Thêm khoảng cách giữa hai nút
 
             Button(
-                onClick = { navController.navigate("profile") },
-                modifier = Modifier.weight(1f)
+                onClick = { navController.navigate("profile") }, // Điều hướng đến "profile"
+                modifier = Modifier.weight(1f) // Chia đều không gian
             ) {
                 Text("Tiếp tục")
             }
         }
     }
 }
+
+
 @Composable
-fun NutritionCard(item: NutritionItem, onClick: () -> Unit) {
+fun NutritionCard(item: NutritionItem, navController: NavHostController) { // Thêm navController làm tham số
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .height(180.dp)
-            .clickable { onClick() },
+            .clickable { // Thêm modifier clickable
+                when (item.title) {
+                    "1. Chế độ ăn lỏng" -> navController.navigate("anlong_detail")
+                    "2. Chế độ ăn kiêng cho người tiểu đường" -> navController.navigate("ankieng_detail")
+                    "3. Chế độ dinh dưỡng giàu calo" -> navController.navigate("calo_detail")
+                    "4. Chế độ ăn ít cholesterol" -> navController.navigate("choles_detail")
+                    "5. Chế độ ăn chay" -> navController.navigate("anchay_detail")
+                    "6. Chế độ ăn ít natri" -> navController.navigate("natri_detail")
+                    "7. Chế độ dinh dưỡng ít và giàu protein" -> navController.navigate("protein_detail")
+
+
+                }
+            },
         elevation = CardDefaults.cardElevation(6.dp)
     ) {
         Box {
@@ -101,12 +110,15 @@ fun NutritionCard(item: NutritionItem, onClick: () -> Unit) {
     }
 }
 
-
 data class NutritionItem(val title: String, val imageResId: Int)
+
 val nutritionItems = listOf(
-    NutritionItem("Uống nước", R.drawable.nuocep),
-    NutritionItem("Rau củ", R.drawable.raucu),
-    NutritionItem("Hạn chế đường", R.drawable.thom),
-    NutritionItem("Protein", R.drawable.thitbo),
-    NutritionItem("Ăn sáng", R.drawable.thitheo),
+    NutritionItem("1. Chế độ ăn lỏng", R.drawable.anlong2),
+    NutritionItem("2. Chế độ ăn kiêng cho người tiểu đường", R.drawable.ankieng),
+    NutritionItem("3. Chế độ dinh dưỡng giàu calo", R.drawable.giaucalo),
+    NutritionItem("4. Chế độ ăn ít cholesterol", R.drawable.choles),
+    NutritionItem("5. Chế độ ăn chay", R.drawable.anchay),
+    NutritionItem("6. Chế độ ăn ít natri", R.drawable.natri),
+    NutritionItem("7. Chế độ dinh dưỡng ít và giàu protein", R.drawable.protein),
+
 )
