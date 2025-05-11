@@ -49,11 +49,11 @@ fun HomeScreen(navController: NavController) {
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 val cardData = listOf(
-                    CardData("Tuổi: 18-29", R.drawable.nhocc, "AgeDetailsScreen/18-29"),
-                    CardData("Tuổi: 30-49", R.drawable.lon1, "AgeDetailsScreen/30-49"),
-                    CardData("Tuổi: 50+", R.drawable.onggia, "AgeDetailsScreen/50+"),
-                    CardData("Võ", R.drawable.vo, "AgeDetailsScreen"),
-                    CardData("Yoga", R.drawable.yoga2, "AgeDetailsScreen"),
+                    CardData("Tuổi: 18-29", R.drawable.nho, "ageDetails/18-29"), // giữ nguyên đường dẫn
+                    CardData("Tuổi: 30-49", R.drawable.nguoi_lon, "ageDetails/30-49"), // giữ nguyên
+                    CardData("Tuổi: 50+", R.drawable.download, "ageDetails/50+"), // giữ nguyên
+                    CardData("Võ", R.drawable.tapvo, "workoutDetails/vo"), //thay đổi đường dẫn
+                    CardData("Yoga", R.drawable.yoga, "workoutDetails/yoga"), //thay đổi đường dẫn
 
                 )
                 items(cardData) { card ->
@@ -74,11 +74,12 @@ fun HomeScreen(navController: NavController) {
                 horizontalArrangement = Arrangement.SpaceAround
             ) {
                 Button(
-                    onClick = { navController.popBackStack() },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.White),
-                    modifier = Modifier.width(150.dp)
+                    onClick = { navController.navigate("nutrition") },
+                    modifier = Modifier
+                        .padding(top = 16.dp)
+                        .fillMaxWidth()
                 ) {
-                    Text("Quay về", color = Color.Blue)
+                    Text("Chế độ dinh dưỡng")
                 }
                 Button(
                     onClick = { navController.navigate("profile") },
@@ -93,4 +94,3 @@ fun HomeScreen(navController: NavController) {
 }
 
 data class CardData(val title: String, val imageResourceId: Int, val route: String)
-
