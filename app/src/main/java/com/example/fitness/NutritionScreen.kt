@@ -22,6 +22,7 @@ fun NutritionScreen(navController: NavHostController) {
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .background(Color(0xFF2196F3))
             .padding(16.dp),
     ) {
         Text(
@@ -116,7 +117,7 @@ val nutritionItems = listOf(
     NutritionItem("1. Chế độ ăn lỏng", R.drawable.anlong2),
     NutritionItem("2. Chế độ ăn kiêng cho người tiểu đường", R.drawable.ankieng),
     NutritionItem("3. Chế độ dinh dưỡng giàu calo", R.drawable.giaucalo),
-    NutritionItem("4. Chế độ ăn ít cholesterol", R.drawable.choles),
+    NutritionItem("4. Chế độ ăn ít cholesterol", R.drawable.cholesterol),
     NutritionItem("5. Chế độ ăn chay", R.drawable.anchay),
     NutritionItem("6. Chế độ ăn ít natri", R.drawable.natri),
     NutritionItem("7. Chế độ dinh dưỡng ít và giàu protein", R.drawable.protein),

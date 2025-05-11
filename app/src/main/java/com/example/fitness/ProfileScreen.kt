@@ -9,6 +9,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 
+
 @Composable
 fun ProfileScreen(navController: NavController) {
     Column(
@@ -18,7 +19,7 @@ fun ProfileScreen(navController: NavController) {
         verticalArrangement = Arrangement.SpaceBetween
     ) {
         Text(
-            text = "Hồ sơ",
+            text = "Calo của các món ăn",
             style = MaterialTheme.typography.headlineMedium,
             color = MaterialTheme.colorScheme.primary
         )
@@ -36,7 +37,7 @@ fun ProfileScreen(navController: NavController) {
             Spacer(modifier = Modifier.width(16.dp))
             Button(
                 onClick = {
-                    navController.navigate("home") {
+                    navController.navigate("login") {
                         popUpTo(navController.graph.id) {
                             inclusive = true
                         }

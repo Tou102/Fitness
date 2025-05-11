@@ -1,5 +1,12 @@
 package com.example.fitness
 
+import AnChayChiTiet
+import AnKiengChiTiet
+import AnLongChiTiet
+import CaloChiTiet
+import CholesterolChiTiet
+import NatriChiTiet
+import ProteinThapChiTiet
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -55,7 +62,7 @@ fun ChiTietAnLong(navController: NavHostController) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // Screen content for Age Details
-        Text(text = "Age Details for: $", style = MaterialTheme.typography.headlineMedium)
+
         // Back button
         Button(onClick = { navController.popBackStack() }) {
             Text(text = "Quay về")
@@ -71,7 +78,7 @@ fun AgeDetailsScreen(ageRange: String?, navController: NavHostController) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // Screen content for Age Details
-        Text(text = "Age Details for: $ageRange", style = MaterialTheme.typography.headlineMedium)
+        Text(text = "Độ tuổi từ : $ageRange", style = MaterialTheme.typography.headlineMedium)
         // Back button
         Button(onClick = { navController.popBackStack() }) {
             Text(text = "Quay về")
