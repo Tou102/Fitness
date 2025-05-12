@@ -10,19 +10,29 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.graphics.Color // Import Color for text if needed for contrast
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import com.example.fitness.R
+import com.example.fitness.viewModel.UserViewModel
+import androidx.navigation.compose.rememberNavController
 
 @Composable
-fun LoginScreen(navController: androidx.navigation.NavController) {
-    var username by remember { mutableStateOf("") }
+fun LoginScreen(navController: NavController, viewModel: UserViewModel = viewModel()) {
+    var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var isLoginEnabled by remember(email, password) {
+        mutableStateOf(email.isNotBlank() && password.isNotBlank())
+    }
+    var loginError by remember { mutableStateOf<String?>(null) }
 
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
         Image(
-            painter = painterResource(id = R.drawable.loginscreen),
+            painter = painterResource(id = R.drawable.loginscreen), // Thay bằng ID hình nền của bạn
             contentDescription = "Hình nền đăng nhập",
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop
@@ -37,15 +47,16 @@ fun LoginScreen(navController: androidx.navigation.NavController) {
         ) {
             Text(
                 text = "Đăng nhập",
-                style = MaterialTheme.typography.headlineMedium
+                style = MaterialTheme.typography.headlineMedium,
+                color = Color.White
             )
 
             Spacer(modifier = Modifier.height(24.dp))
 
             OutlinedTextField(
-                value = username,
-                onValueChange = { username = it },
-                label = { Text("Tên đăng nhập") },
+                value = email,
+                onValueChange = { email = it },
+                label = { Text("Email") },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth()
             )
@@ -63,15 +74,57 @@ fun LoginScreen(navController: androidx.navigation.NavController) {
 
             Spacer(modifier = Modifier.height(24.dp))
 
+            if (loginError != null) {
+                Text(
+                    text = loginError!!,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+            }
+
             Button(
                 onClick = {
-                    // Khi đăng nhập thành công, điều hướng sang màn hình chính
-                    navController.navigate("bmi")
+                    viewModel.login(email, password)
                 },
+                enabled = isLoginEnabled,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Đăng nhập")
             }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            TextButton(onClick = { navController.navigate("register") }) {
+                Text("Chưa có tài khoản? Đăng ký", color = Color.White)
+            }
+
+            // Xử lý trạng thái đăng nhập từ ViewModel
+            LaunchedEffect(viewModel.loginState.collectAsState().value) {
+                when (val state = viewModel.loginState.value) {
+                    is UserViewModel.LoginState.Success -> {
+                        loginError = null
+                        navController.navigate("home") {
+                            popUpTo("login") { inclusive = true } // Ngăn quay lại màn hình đăng nhập
+                        }
+                    }
+                    is UserViewModel.LoginState.Error -> {
+                        loginError = state.message
+                    }
+                    UserViewModel.LoginState.Loading -> {
+                        loginError = null // Xóa lỗi trước đó khi bắt đầu tải
+                    }
+                    UserViewModel.LoginState.Idle -> {
+                        loginError = null
+                    }
+                }
+            }
         }
     }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun LoginScreenPreview() {
+    val navController = rememberNavController()
+    LoginScreen(navController = navController)
 }

@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.ui.Alignment
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.Modifier
+import com.example.fitness.LoginScreen
 
 @Composable
 fun AppNavigation(navController: NavHostController) {
