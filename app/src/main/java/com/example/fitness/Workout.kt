@@ -88,7 +88,7 @@ fun WorkoutScreen(navController: NavController) {
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
                 ) {
-                    Text("Tiếp tục", color = Color.White)
+                    Text("Hồ sơ", color = Color.White)
                 }
             }
         }
