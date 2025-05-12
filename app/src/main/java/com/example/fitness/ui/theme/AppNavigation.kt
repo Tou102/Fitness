@@ -3,9 +3,11 @@ package com.example.fitness
 import AnChayChiTiet
 import AnKiengChiTiet
 import AnLongChiTiet
+import BmiScreen
 import CaloChiTiet
 import CholesterolChiTiet
 import NatriChiTiet
+import BmiScreen
 import ProteinThapChiTiet
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
@@ -28,7 +30,7 @@ import androidx.compose.ui.Modifier
 fun AppNavigation(navController: NavHostController) {
     NavHost(navController = navController, startDestination = "login") {
         composable("login") { LoginScreen(navController) }
-        composable("home") { HomeScreen(navController) }
+        composable("workout") { WorkoutScreen(navController) }
         composable("nutrition") { NutritionScreen(navController) }
         composable("anlong_detail") { AnLongChiTiet(navController) }
         composable("ankieng_detail") { AnKiengChiTiet(navController) }
@@ -37,7 +39,8 @@ fun AppNavigation(navController: NavHostController) {
         composable("anchay_detail") { AnChayChiTiet(navController) }
         composable("natri_detail") { NatriChiTiet(navController) }
         composable("protein_detail") { ProteinThapChiTiet(navController) }
-        composable("profile") { ProfileScreen(navController) }
+
+        composable("bmi") {BmiScreen (navController) }
 
         // Added the workout details routes
         composable(
