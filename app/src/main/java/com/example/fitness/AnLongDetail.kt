@@ -126,18 +126,19 @@ fun AnLongChiTiet(navController: NavHostController) {
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(text = "Giúp duy trì chức năng cơ thể, tăng cường năng lượng, hỗ trợ tiêu hóa...")
                 }
+                Image(
+                    painter = painterResource(id = R.drawable.sup), // Thay "water_glass" bằng tên file hình ảnh của bạn trong drawable
+                    contentDescription = "Hình ảnh súp",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(150.dp)
+                        .padding(horizontal = 16.dp),
+                    contentScale = ContentScale.Crop
+                )
             }
             Spacer(modifier = Modifier.height(16.dp))
-            Image(
-                painter = painterResource(id = R.drawable.sup), // Thay "water_glass" bằng tên file hình ảnh của bạn trong drawable
-                contentDescription = "Hình ảnh súp",
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(150.dp)
-                    .padding(horizontal = 16.dp),
-                contentScale = ContentScale.Crop
-            )
-            Spacer(modifier = Modifier.height(16.dp))
+
+
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -156,17 +157,18 @@ fun AnLongChiTiet(navController: NavHostController) {
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(text = "Ngoài nước lọc, bạn có thể uống nước ép trái cây, sinh tố, súp...")
                 }
+
+                Image(
+                    painter = painterResource(id = R.drawable.canh), // Thay "water_glass" bằng tên file hình ảnh của bạn trong drawable
+                    contentDescription = "Hình ảnh canh",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(150.dp)
+                        .padding(horizontal = 16.dp),
+                    contentScale = ContentScale.Crop
+                )
             }
-            Spacer(modifier = Modifier.height(16.dp))
-            Image(
-                painter = painterResource(id = R.drawable.canh), // Thay "water_glass" bằng tên file hình ảnh của bạn trong drawable
-                contentDescription = "Hình ảnh canh",
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(150.dp)
-                    .padding(horizontal = 16.dp),
-                contentScale = ContentScale.Crop
-            )
+
             Spacer(modifier = Modifier.height(16.dp))
             Card(
                 modifier = Modifier
