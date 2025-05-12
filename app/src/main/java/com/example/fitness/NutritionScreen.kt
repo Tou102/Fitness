@@ -47,7 +47,7 @@ fun NutritionScreen(navController: NavHostController) {
             horizontalArrangement = Arrangement.SpaceBetween // Để các nút ở hai đầu
         ) {
             Button(
-                onClick = { navController.navigate("home") }, // Điều hướng về "home"
+                onClick = { navController.navigate("workout") }, // Điều hướng về "home"
                 modifier = Modifier.weight(1f) // Chia đều không gian
             ) {
                 Text("Quay lại")
@@ -56,7 +56,7 @@ fun NutritionScreen(navController: NavHostController) {
             Spacer(modifier = Modifier.width(16.dp)) // Thêm khoảng cách giữa hai nút
 
             Button(
-                onClick = { navController.navigate("profile") }, // Điều hướng đến "profile"
+                onClick = { navController.navigate("home") }, // Điều hướng đến "profile"
                 modifier = Modifier.weight(1f) // Chia đều không gian
             ) {
                 Text("Tiếp tục")

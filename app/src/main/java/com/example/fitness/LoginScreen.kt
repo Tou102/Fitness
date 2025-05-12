@@ -66,7 +66,7 @@ fun LoginScreen(navController: androidx.navigation.NavController) {
             Button(
                 onClick = {
                     // Khi đăng nhập thành công, điều hướng sang màn hình chính
-                    navController.navigate("home")
+                    navController.navigate("bmi")
                 },
                 modifier = Modifier.fillMaxWidth()
             ) {

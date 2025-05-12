@@ -18,7 +18,7 @@ import androidx.compose.foundation.lazy.grid.items
 import com.example.fitness.ui.components.AgeCategoryCard
 
 @Composable
-fun HomeScreen(navController: NavController) {
+fun WorkoutScreen(navController: NavController) {
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -73,24 +73,27 @@ fun HomeScreen(navController: NavController) {
                     .padding(vertical = 16.dp),
                 horizontalArrangement = Arrangement.SpaceAround
             ) {
-                Button(
-                    onClick = { navController.navigate("nutrition") },
-                    modifier = Modifier
-                        .padding(top = 16.dp)
-                        .fillMaxWidth()
-                ) {
-                    Text("Chế độ dinh dưỡng")
+
                 }
+                Spacer(modifier = Modifier.width(16.dp))
                 Button(
-                    onClick = { navController.navigate("profile") },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.White),
-                    modifier = Modifier.width(150.dp)
+                    onClick = {
+                        navController.navigate("nutrition") {
+                            popUpTo(navController.graph.id) {
+                                inclusive = true
+                            }
+                            launchSingleTop = true
+                        }
+                    },
+                    modifier = Modifier.weight(1f),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
                 ) {
-                    Text("Hồ sơ", color = Color.Blue)
+                    Text("Tiếp tục", color = Color.White)
                 }
             }
         }
     }
-}
+
+
 
 data class CardData(val title: String, val imageResourceId: Int, val route: String)
