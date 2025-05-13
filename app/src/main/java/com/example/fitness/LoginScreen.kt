@@ -12,7 +12,6 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.graphics.Color // Import Color for text if needed for contrast
 
-
 @Composable
 fun LoginScreen(navController: androidx.navigation.NavController) {
     var username by remember { mutableStateOf("") }
@@ -67,7 +66,7 @@ fun LoginScreen(navController: androidx.navigation.NavController) {
             Button(
                 onClick = {
                     // Khi đăng nhập thành công, điều hướng sang màn hình chính
-                        navController.navigate("bmi")
+                    navController.navigate("bmi")
                 },
                 modifier = Modifier.fillMaxWidth()
             ) {
