@@ -12,6 +12,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.graphics.Color // Import Color for text if needed for contrast
 
+
 @Composable
 fun LoginScreen(navController: androidx.navigation.NavController) {
     var username by remember { mutableStateOf("") }
