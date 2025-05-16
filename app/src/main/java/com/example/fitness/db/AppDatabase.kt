@@ -1,27 +1,30 @@
-import androidx.room.Database
-import androidx.room.RoomDatabase
-import androidx.room.Room
+package com.example.fitness.db
+
+
 import android.content.Context
-import com.example.fitness.entity.User
+import androidx.room.Database
+import androidx.room.Room
+import androidx.room.RoomDatabase
 import com.example.fitness.dao.UserDao
+import com.example.fitness.entity.User
 
 @Database(entities = [User::class], version = 1)
-abstract class UserDatabase : RoomDatabase() {
+abstract class AppDatabase : RoomDatabase() {
     abstract fun userDao(): UserDao
 
     companion object {
         @Volatile
-        private var INSTANCE: UserDatabase? = null
+        private var INSTANCE: AppDatabase? = null
 
-        fun getInstance(context: Context): UserDatabase {
+        fun getDatabase(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
-                    UserDatabase::class.java, // Sử dụng UserDatabase::class.java
-                    "fitness_app_db"
+                    AppDatabase::class.java,
+                    "fitness_database"
                 ).build()
                 INSTANCE = instance
-                return instance
+                instance
             }
         }
     }

@@ -1,14 +1,14 @@
 package com.example.fitness
 
-
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.material3.*
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.navigation.compose.*
-
+import androidx.navigation.compose.rememberNavController
+import com.example.fitness.ui.theme.AppNavigation
 import com.example.fitness.ui.theme.FitnessTheme
 
 class MainActivity : ComponentActivity() {
@@ -21,8 +21,8 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier,
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    val navController = rememberNavController()
-                    AppNavigation(navController = navController)
+                    // Truyền applicationContext vào AppNavigation
+                    AppNavigation(navController = navController, context = applicationContext)
                 }
             }
         }
