@@ -11,6 +11,9 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.example.fitness.NutritionItem
 import com.example.fitness.R
 
@@ -54,18 +57,17 @@ fun WorkoutDetailScreen(workoutType: String?, navController: NavHostController) 
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFF2196F3))
-            .padding(16.dp), // Thêm padding cho toàn bộ màn hình
+            .padding(16.dp)
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally // Căn giữa các thẻ theo chiều ngang
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
                 text = "Bài tập: $workoutType",
                 style = MaterialTheme.typography.headlineMedium,
                 color = Color.White,
-                modifier = Modifier.padding(bottom = 16.dp) // Thêm padding bên dưới tiêu đề
+                modifier = Modifier.padding(bottom = 16.dp)
             )
 
             // Thẻ thứ nhất
@@ -90,32 +92,8 @@ fun WorkoutDetailScreen(workoutType: String?, navController: NavHostController) 
                 }
             }
 
-            // Thẻ thứ hai
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
-                ) {
-                    Text(
-                        text = "Thông tin thêm 2",
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(text = "Một số hướng dẫn hoặc lưu ý quan trọng khác.")
-                    // Thêm nhiều nội dung hơn nếu cần
-                }
-            }
-
-            // Nếu bạn muốn thêm thẻ thứ ba, hãy sao chép và chỉnh sửa một trong các thẻ trên
         }
 
-        // Nút "Quay về" (ở dưới cùng bên trái)
         Row(
             modifier = Modifier
                 .align(Alignment.BottomStart)
@@ -127,3 +105,5 @@ fun WorkoutDetailScreen(workoutType: String?, navController: NavHostController) 
         }
     }
 }
+
+

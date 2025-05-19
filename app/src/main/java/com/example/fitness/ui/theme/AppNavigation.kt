@@ -10,6 +10,7 @@ import NatriChiTiet
 import ProfileScreen
 import ProteinThapChiTiet
 import WorkoutDetailScreen
+
 import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -64,5 +65,7 @@ fun AppNavigation(navController: NavHostController, context: Context) {
         composable("profile") {
             ProfileScreen(navController = navController)
         }
+
+
     }
 }
