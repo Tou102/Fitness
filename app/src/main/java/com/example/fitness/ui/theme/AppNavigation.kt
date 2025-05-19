@@ -7,6 +7,7 @@ import BmiScreen
 import CaloChiTiet
 import CholesterolChiTiet
 import NatriChiTiet
+import ProfileScreen
 import ProteinThapChiTiet
 import WorkoutDetailScreen
 import android.content.Context
@@ -57,6 +58,11 @@ fun AppNavigation(navController: NavHostController, context: Context) {
         composable("workoutDetails/{workoutType}") { backStackEntry ->
             val workoutType = backStackEntry.arguments?.getString("workoutType")
             WorkoutDetailScreen(workoutType = workoutType, navController = navController)
+
+
+        }
+        composable("profile") {
+            ProfileScreen(navController = navController)
         }
     }
 }

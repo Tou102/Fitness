@@ -49,9 +49,9 @@ fun WorkoutScreen(navController: NavController) {
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 val cardData = listOf(
-                    CardData("Tuổi: 18-29", R.drawable.nho, "ageDetails/18-29"), // giữ nguyên đường dẫn
-                    CardData("Tuổi: 30-49", R.drawable.nguoi_lon, "ageDetails/30-49"), // giữ nguyên
-                    CardData("Tuổi: 50+", R.drawable.download, "ageDetails/50+"), // giữ nguyên
+                    CardData("Tuổi: 18-29", R.drawable.nho, "workoutDetails/18-29"), // giữ nguyên đường dẫn
+                    CardData("Tuổi: 30-49", R.drawable.nguoi_lon, "workoutDetails/30-49"), // giữ nguyên
+                    CardData("Tuổi: 50+", R.drawable.download, "workoutDetails/50+"), // giữ nguyên
                     CardData("Võ", R.drawable.tapvo, "workoutDetails/vo"), //thay đổi đường dẫn
                     CardData("Yoga", R.drawable.yoga, "workoutDetails/yoga"), //thay đổi đường dẫn
 
