@@ -12,16 +12,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.navigation.NavHostController
 import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.viewModelScope
 import com.example.fitness.viewModel.UserViewModel
-import kotlinx.coroutines.launch
 
 
 @Composable
-fun LoginScreen(navController: NavHostController, userViewModel: UserViewModel) {
+fun RegisterScreen(navController: NavHostController, userViewModel: UserViewModel) {
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var isLoginEnabled by remember { mutableStateOf(true) }
+    var confirmPassword by remember { mutableStateOf("") }
+    var isRegisterEnabled by remember { mutableStateOf(true) }
     val context = LocalContext.current
 
     // UI cấu trúc
@@ -33,7 +32,7 @@ fun LoginScreen(navController: NavHostController, userViewModel: UserViewModel) 
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = "Đăng nhập",
+            text = "Đăng ký tài khoản",
             style = MaterialTheme.typography.headlineMedium,
             modifier = Modifier.padding(bottom = 16.dp)
         )
@@ -57,34 +56,44 @@ fun LoginScreen(navController: NavHostController, userViewModel: UserViewModel) 
             modifier = Modifier.fillMaxWidth()
         )
 
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Trường nhập xác nhận mật khẩu
+        OutlinedTextField(
+            value = confirmPassword,
+            onValueChange = { confirmPassword = it },
+            label = { Text("Xác nhận mật khẩu") },
+            visualTransformation = PasswordVisualTransformation(),
+            modifier = Modifier.fillMaxWidth()
+        )
+
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Nút Đăng nhập
+        // Nút Đăng ký
         Button(
             onClick = {
-                isLoginEnabled = false
-                userViewModel.viewModelScope.launch {
-                    val user = userViewModel.loginUser(username, password)
-                    if (user != null) {
-                        Toast.makeText(context, "Đăng nhập thành công", Toast.LENGTH_SHORT).show()
-                        navController.navigate("bmi") // Điều hướng tới màn hình chính
-                    } else {
-                        Toast.makeText(context, "Sai tên đăng nhập hoặc mật khẩu", Toast.LENGTH_SHORT).show()
-                        isLoginEnabled = true
-                    }
+                isRegisterEnabled = false
+
+                if (password == confirmPassword) {
+                    userViewModel.registerUser(username, password)
+                    Toast.makeText(context, "Đăng ký thành công", Toast.LENGTH_SHORT).show()
+                    navController.popBackStack() // Quay lại màn hình đăng nhập
+                } else {
+                    Toast.makeText(context, "Mật khẩu không khớp", Toast.LENGTH_SHORT).show()
+                    isRegisterEnabled = true
                 }
             },
             modifier = Modifier.fillMaxWidth(),
-            enabled = isLoginEnabled
+            enabled = isRegisterEnabled
         ) {
-            Text("Đăng nhập")
+            Text("Đăng ký")
         }
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Liên kết tới màn hình Đăng ký
-        TextButton(onClick = { navController.navigate("register") }) {
-            Text("Chưa có tài khoản? Đăng ký ngay!")
+        // Liên kết tới màn hình Đăng nhập
+        TextButton(onClick = { navController.popBackStack() }) {
+            Text("Đã có tài khoản? Đăng nhập ngay!")
         }
     }
 }
