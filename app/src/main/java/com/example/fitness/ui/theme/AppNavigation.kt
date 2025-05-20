@@ -1,14 +1,9 @@
 package com.example.fitness.ui.theme
 
-import AnChayChiTiet
-import AnKiengChiTiet
-import AnLongChiTiet
+
 import BmiScreen
-import CaloChiTiet
-import CholesterolChiTiet
-import NatriChiTiet
 import ProfileScreen
-import ProteinThapChiTiet
+
 import WorkoutDetailScreen
 
 import android.content.Context
@@ -17,8 +12,15 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.example.fitness.AnChayChiTiet
+import com.example.fitness.AnKiengChiTiet
+import com.example.fitness.AnLongChiTiet
+import com.example.fitness.CaloChiTiet
+import com.example.fitness.CholesterolChiTiet
 import com.example.fitness.LoginScreen
+import com.example.fitness.NatriChiTiet
 import com.example.fitness.NutritionScreen
+import com.example.fitness.ProteinThapChiTiet
 import com.example.fitness.RegisterScreen
 import com.example.fitness.WorkoutScreen
 import com.example.fitness.db.AppDatabase

@@ -6,6 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -15,6 +16,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+
+
 
 @Composable
 
@@ -40,30 +43,42 @@ fun NutritionScreen(navController: NavHostController) {
             }
         }
 
-        Row( // Thêm Row để chứa hai nút
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween // Để các nút ở hai đầu
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Button(
-                onClick = { navController.navigate("workout") }, // Điều hướng về "home"
-                modifier = Modifier.weight(1f) // Chia đều không gian
+                onClick = { navController.navigate("workout") },
+                modifier = Modifier.weight(1f)
             ) {
                 Text("Quay lại")
             }
 
-            Spacer(modifier = Modifier.width(16.dp)) // Thêm khoảng cách giữa hai nút
+            Spacer(modifier = Modifier.width(16.dp))
 
             Button(
-                onClick = { navController.navigate("profile") }, // Điều hướng đến "profile"
-                modifier = Modifier.weight(1f) // Chia đều không gian
+                onClick = { navController.navigate("profile") },
+                modifier = Modifier.weight(1f)
             ) {
                 Text("Tiếp tục")
             }
         }
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        // Hàng nút Thêm - Sửa - Xóa
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        )
+        {
+
+        }
     }
 }
+
 
 
 @Composable
