@@ -67,29 +67,7 @@ fun WorkoutScreen(navController: NavController) {
                 }
             }
             Spacer(modifier = Modifier.weight(1f))
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 16.dp),
-                horizontalArrangement = Arrangement.SpaceAround
-            ) {
 
-            }
-            Spacer(modifier = Modifier.width(16.dp))
-            Button(
-                onClick = {
-                    navController.navigate("nutrition") {
-                        popUpTo(navController.graph.id) {
-                            inclusive = true
-                        }
-                        launchSingleTop = true
-                    }
-                },
-                modifier = Modifier.weight(1f),
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
-            ) {
-                Text("Hồ sơ", color = Color.White)
-            }
         }
     }
 }

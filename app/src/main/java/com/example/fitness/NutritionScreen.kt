@@ -1,5 +1,6 @@
 package com.example.fitness
 
+import NutritionDetailViewModel
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -9,6 +10,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -18,9 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 
 
-
 @Composable
-
 fun NutritionScreen(navController: NavHostController) {
     Column(
         modifier = Modifier
@@ -38,7 +38,7 @@ fun NutritionScreen(navController: NavHostController) {
             modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            items(nutritionItems) { item ->
+            items(nutritionItems) { item ->  // Sử dụng nutritionItems ở đây
                 NutritionCard(item = item, navController = navController)
             }
         }
@@ -49,37 +49,10 @@ fun NutritionScreen(navController: NavHostController) {
                 .padding(top = 16.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Button(
-                onClick = { navController.navigate("workout") },
-                modifier = Modifier.weight(1f)
-            ) {
-                Text("Quay lại")
-            }
-
-            Spacer(modifier = Modifier.width(16.dp))
-
-            Button(
-                onClick = { navController.navigate("profile") },
-                modifier = Modifier.weight(1f)
-            ) {
-                Text("Tiếp tục")
-            }
-        }
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        // Hàng nút Thêm - Sửa - Xóa
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        )
-        {
 
         }
     }
 }
-
-
 
 @Composable
 fun NutritionCard(item: NutritionItem, navController: NavHostController) { // Thêm navController làm tham số

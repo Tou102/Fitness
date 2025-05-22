@@ -43,6 +43,7 @@ android {
 
 dependencies {
 
+    implementation(libs.androidx.runtime.livedata)
     val room_version = "2.6.1"
 
 
