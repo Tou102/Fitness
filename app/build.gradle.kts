@@ -45,7 +45,8 @@ dependencies {
 
     implementation(libs.androidx.runtime.livedata)
     val room_version = "2.6.1"
-
+    implementation ("com.google.accompanist:accompanist-pager:0.31.5-beta")
+    implementation ("com.google.accompanist:accompanist-pager-indicators:0.31.5-beta")
 
 
 
@@ -71,6 +72,8 @@ dependencies {
     implementation ("io.coil-kt:coil-compose:2.7.0")
     implementation("io.coil-kt:coil-gif:2.5.0")
     implementation("com.airbnb.android:lottie-compose:6.0.0")
+    implementation ("androidx.compose.material3:material3:1.0.1")
+    implementation ("androidx.compose.material:material-icons-extended:<version>")
 
 
     // Room

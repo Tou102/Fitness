@@ -16,6 +16,8 @@ import androidx.navigation.compose.composable
 import com.example.fitness.*
 
 import com.example.fitness.db.AppDatabase
+import com.example.fitness.ui.screens.FitnessIntroPager
+
 import com.example.fitness.viewModel.UserViewModel
 import com.example.fitness.viewModelFactory.UserViewModelFactory
 
@@ -50,6 +52,9 @@ fun AppNavigation(
         }
         composable("bieudo") {
             BieuDo(navController = navController)
+        }
+        composable("gioithieu") {
+            FitnessIntroPager(navController = navController)
         }
 
         composable("anlong_detail") { AnLongChiTiet(navController) }

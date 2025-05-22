@@ -19,7 +19,7 @@ fun MainScreen() {
     val currentRoute = navBackStackEntry?.destination?.route
 
     // Danh sách route không cần hiện BottomNavigation
-    val noBottomNavRoutes = listOf("login", "register")
+    val noBottomNavRoutes = listOf("login", "register","gioithieu")
 
     Scaffold(
         bottomBar = {
