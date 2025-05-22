@@ -69,7 +69,7 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
 
 
-
+    implementation ("pl.droidsonroids.gif:android-gif-drawable:1.2.29")
     // Room
     implementation ("androidx.room:room-runtime:2.7.1")
 

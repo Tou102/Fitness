@@ -67,7 +67,7 @@ fun LoginScreen(navController: NavHostController, userViewModel: UserViewModel) 
                     val user = userViewModel.loginUser(username, password)
                     if (user != null) {
                         Toast.makeText(context, "Đăng nhập thành công", Toast.LENGTH_SHORT).show()
-                        navController.navigate("bmi") // Điều hướng tới màn hình chính
+                        navController.navigate("workout") // Điều hướng tới màn hình chính
                     } else {
                         Toast.makeText(context, "Sai tên đăng nhập hoặc mật khẩu", Toast.LENGTH_SHORT).show()
                         isLoginEnabled = true
