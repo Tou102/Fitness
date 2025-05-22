@@ -75,7 +75,7 @@ dependencies {
     implementation ("androidx.compose.material3:material3:1.0.1")
     implementation ("androidx.compose.material:material-icons-extended:<version>")
 
-
+    implementation ("pl.droidsonroids.gif:android-gif-drawable:1.2.29")
     // Room
     implementation ("androidx.room:room-runtime:2.7.1")
 
