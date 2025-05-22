@@ -59,6 +59,7 @@ fun WorkoutScreen(navController: NavHostController) {
                 onClick = { navController.navigate("nutrition") }, // Điều hướng về màn hình chế độ dinh dưỡng
                 modifier = Modifier.weight(1f) // Chia đều không gian
             ) {
+
                 Text("Quay lại")
             }
 
@@ -70,6 +71,8 @@ fun WorkoutScreen(navController: NavHostController) {
             ) {
                 Text("Tiếp tục")
             }
+
+               
         }
     }
 }

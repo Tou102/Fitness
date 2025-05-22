@@ -1,287 +1,431 @@
+package com.example.fitness
+
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.Alignment
 import androidx.navigation.NavHostController
-import com.example.fitness.R
+
+enum class DialogMode {
+    NONE, ADD, EDIT
+}
 
 @Composable
-fun NutritionDetailScreen(navController: NavHostController, title: String, content: String, additionalContent: @Composable () -> Unit) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
+fun NutritionDetailScreen(
+    navController: NavHostController,
+    title: String,
+    content: String,
+    additionalContent: @Composable () -> Unit,
+    onAdd: (String) -> Unit,
+    onEdit: (String) -> Unit,
+    onDelete: () -> Unit,
+) {
+    var isAddEditDialogOpen by remember { mutableStateOf(false) }
+    var isCancelConfirmDialogOpen by remember { mutableStateOf(false) }
+    var dialogMode by remember { mutableStateOf(DialogMode.NONE) }
+    var inputTitle by remember { mutableStateOf("") }
+
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = MaterialTheme.colorScheme.background
     ) {
-        Column( // Column chứa tiêu đề, nội dung chính và additionalContent
+        Column(
             modifier = Modifier
-                .weight(1f) // Cho phép phần này chiếm phần lớn không gian và cuộn
-                .verticalScroll(rememberScrollState())
+                .fillMaxSize()
+                .padding(20.dp)
         ) {
-            Text(
-                text = " $title",
-                style = MaterialTheme.typography.headlineMedium
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Text(
-                text = content,
-                style = MaterialTheme.typography.bodyLarge
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Slot cho nội dung bổ sung (các thẻ và hình ảnh)
-            additionalContent()
-        }
-
-        Column { // Column chứa các nút ở dưới cùng
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .verticalScroll(rememberScrollState())
+                    .padding(bottom = 12.dp)
             ) {
-                Button(
-                    onClick = { navController.popBackStack() },
-                    modifier = Modifier.weight(1f)
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.headlineLarge.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    ),
+                    modifier = Modifier.padding(bottom = 12.dp)
+                )
+
+                Text(
+                    text = content,
+                    style = MaterialTheme.typography.bodyLarge.copy(lineHeight = 22.sp),
+                    color = MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier.padding(bottom = 20.dp)
+                )
+
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                    elevation = CardDefaults.cardElevation(6.dp),
+                    shape = RoundedCornerShape(16.dp)
                 ) {
-                    Text("Quay về")
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        additionalContent()
+                    }
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
+            Column {
                 Button(
-                    onClick = { /* TODO: Xử lý thêm */ },
-                    modifier = Modifier.weight(1f)
+                    onClick = { navController.popBackStack() },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                 ) {
-                    Text("Thêm")
+                    Text(
+                        text = "Quay về",
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        style = MaterialTheme.typography.titleMedium
+                    )
                 }
 
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
-                Button(
-                    onClick = { /* TODO: Xử lý sửa */ },
-                    modifier = Modifier.weight(1f)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Text("Sửa")
-                }
+                    Button(
+                        onClick = {
+                            dialogMode = DialogMode.ADD
+                            inputTitle = ""
+                            isAddEditDialogOpen = true
+                        },
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.primary)
+                    ) {
+                        Text("Thêm")
+                    }
 
-                Spacer(modifier = Modifier.width(8.dp))
+                    Button(
+                        onClick = {
+                            dialogMode = DialogMode.EDIT
+                            inputTitle = title
+                            isAddEditDialogOpen = true
+                        },
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.primary)
+                    ) {
+                        Text("Sửa")
+                    }
 
-                Button(
-                    onClick = { /* TODO: Xử lý xóa */ },
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text("Xóa")
+                    Button(
+                        onClick = {
+                            isCancelConfirmDialogOpen = true
+                        },
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                    ) {
+                        Text("Xóa")
+                    }
                 }
             }
         }
     }
+
+    if (isAddEditDialogOpen) {
+        AddEditInputDialog(
+            title = if (dialogMode == DialogMode.ADD) "Thêm chế độ" else "Sửa chế độ",
+            inputText = inputTitle,
+            onInputChange = { inputTitle = it },
+            onConfirm = {
+                if (dialogMode == DialogMode.ADD) {
+                    onAdd(inputTitle.ifBlank { "Chế độ mới" })
+                } else if (dialogMode == DialogMode.EDIT) {
+                    onEdit(inputTitle)
+                }
+                isAddEditDialogOpen = false
+            },
+            onCancelRequest = {
+                isCancelConfirmDialogOpen = true
+            }
+        )
+    }
+
+    if (isCancelConfirmDialogOpen) {
+        CancelConfirmDialog(
+            onConfirmCancel = {
+                isCancelConfirmDialogOpen = false
+                isAddEditDialogOpen = false
+            },
+            onDismissCancel = {
+                isCancelConfirmDialogOpen = false
+            }
+        )
+    }
 }
 
 @Composable
-fun AnLongChiTiet(navController: NavHostController) {
-    NutritionDetailScreen(
-        navController = navController,
-        title = "Ăn lỏng",
-        content = "Bạn nên uống ít nhất 2 lít nước mỗi ngày để duy trì sức khỏe và giúp cơ thể hoạt động hiệu quả.",
-        additionalContent = { // Thêm các thẻ và hình ảnh ở đây
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
-                ) {
-                    Text(
-                        text = "Lợi ích của việc uống đủ nước",
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(text = "Giúp duy trì chức năng cơ thể, tăng cường năng lượng, hỗ trợ tiêu hóa...")
-                }
-                Image(
-                    painter = painterResource(id = R.drawable.sup), // Thay "water_glass" bằng tên file hình ảnh của bạn trong drawable
-                    contentDescription = "Hình ảnh súp",
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(150.dp)
-                        .padding(horizontal = 16.dp),
-                    contentScale = ContentScale.Crop
-                )
+fun AddEditInputDialog(
+    title: String,
+    inputText: String,
+    onInputChange: (String) -> Unit,
+    onConfirm: () -> Unit,
+    onCancelRequest: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onCancelRequest,
+        title = { Text(title) },
+        text = {
+            OutlinedTextField(
+                value = inputText,
+                onValueChange = onInputChange,
+                label = { Text("Tên chế độ") },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth()
+            )
+        },
+        confirmButton = {
+            TextButton(onClick = onConfirm) {
+                Text("Xác nhận")
             }
-            Spacer(modifier = Modifier.height(16.dp))
-
-
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
-                ) {
-                    Text(
-                        text = "Các loại đồ uống lỏng khác",
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(text = "Ngoài nước lọc, bạn có thể uống nước ép trái cây, sinh tố, súp...")
-                }
-
-                Image(
-                    painter = painterResource(id = R.drawable.canh), // Thay "water_glass" bằng tên file hình ảnh của bạn trong drawable
-                    contentDescription = "Hình ảnh canh",
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(150.dp)
-                        .padding(horizontal = 16.dp),
-                    contentScale = ContentScale.Crop
-                )
+        },
+        dismissButton = {
+            TextButton(onClick = onCancelRequest) {
+                Text("Hủy")
             }
-
-            Spacer(modifier = Modifier.height(16.dp))
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
-                ) {
-                    Text(
-                        text = "Thêm một lựa chọn khác",
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(text = "Ví dụ như trà hoặc các loại nước thảo dược...")
-                }
-                Spacer(modifier = Modifier.height(16.dp))
-                Image(
-                    painter = painterResource(id = R.drawable.nuocep), // Thay "water_glass" bằng tên file hình ảnh của bạn trong drawable
-                    contentDescription = "Hình ảnh nước ép",
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(150.dp)
-                        .padding(horizontal = 16.dp),
-                    contentScale = ContentScale.Crop
-                )
-            }
-            // Bạn có thể thêm nhiều thẻ và hình ảnh khác ở đây
         }
     )
 }
 
 @Composable
+fun CancelConfirmDialog(
+    onConfirmCancel: () -> Unit,
+    onDismissCancel: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismissCancel,
+        title = { Text("Xác nhận") },
+        text = { Text("Bạn có chắc muốn hủy? Mọi thay đổi chưa lưu sẽ bị mất.") },
+        confirmButton = {
+            TextButton(onClick = onConfirmCancel) {
+                Text("Đồng ý")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismissCancel) {
+                Text("Tiếp tục chỉnh sửa")
+            }
+        }
+    )
+}
+
+// Ví dụ các màn hình chi tiết giữ nguyên nội dung bạn có
+
+@Composable
+fun AnLongChiTiet(navController: NavHostController) {
+    NutritionCardEditor(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        initialItems = listOf(
+            NutritionCardItem(
+                title = "Lợi ích uống đủ nước",
+                description = "Giúp cơ thể hoạt động tốt, tăng sức khỏe và hỗ trợ tiêu hóa.",
+                imageUri = null // hoặc Uri nếu có
+            ),
+            NutritionCardItem(
+                title = "Ví dụ món ăn",
+                description = "Súp, nước hầm xương, nước trái cây loãng.",
+                imageUri = null
+            ),
+            NutritionCardItem( // Nội dung mới được thêm vào
+                title = "Lời khuyên dinh dưỡng",
+                description = "Nên uống ít nhất 2 lít nước mỗi ngày và ăn nhiều rau củ quả để duy trì sức khỏe.",
+                imageUri = null // hoặc Uri nếu có
+            )
+        )
+    )
+}
+
+
+@Composable
 fun AnKiengChiTiet(navController: NavHostController) {
-    NutritionDetailScreen(
-        navController = navController,
-        title = "Ăn kiêng cho người tiểu đường",
-        content = "Chế độ ăn kiêng đặc biệt dành cho người tiểu đường cần kiểm soát lượng đường trong máu.",
-        additionalContent = { /* Thêm thẻ và hình ảnh cho ăn kiêng ở đây */ }
+    NutritionCardEditor(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        initialItems = listOf(
+            NutritionCardItem(
+                title = "Thực phẩm nên tránh",
+                description = "Hạn chế bánh kẹo, nước ngọt có ga, đồ ăn nhanh, bánh mì trắng, cơm trắng nhiều, các món nhiều dầu mỡ hoặc gia vị mạnh.",
+                imageUri = null // Hoặc Uri nếu có
+            ),
+            NutritionCardItem(
+                title = "Thực phẩm ưu tiên",
+                description = "Ăn nhiều rau xanh, đậu, ngũ cốc nguyên hạt và trái cây vừa phải. Protein nạc như cá, thịt gà không da, đậu phụ.",
+                imageUri = null
+            ),
+            NutritionCardItem(
+                title = "Lời khuyên chuyên gia",
+                description = "Kiểm tra đường huyết định kỳ, tập luyện đều đặn để cải thiện insulin và sức khỏe tim mạch. Tuân thủ hướng dẫn bác sĩ.",
+                imageUri = null
+            )
+        )
     )
 }
 
 @Composable
 fun CaloChiTiet(navController: NavHostController) {
-    NutritionDetailScreen(
-        navController = navController,
-        title = "Chế độ dinh dưỡng giàu calo",
-        content = "Chế độ ăn này cung cấp nhiều năng lượng, phù hợp cho người muốn tăng cân hoặc vận động nhiều.",
-        additionalContent = { /* Thêm thẻ và hình ảnh cho giàu calo ở đây */ }
+    NutritionCardEditor(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        initialItems = listOf(
+            NutritionCardItem(
+                title = "Thực phẩm giàu năng lượng",
+                description = "Hạt như hạnh nhân, óc chó, bơ, dầu ô liu ...",
+                imageUri = null // hoặc Uri nếu có
+            ),
+            NutritionCardItem(
+                title = "Món ăn gợi ý",
+                description = "Sinh tố bơ, cơm gạo lứt ...",
+                imageUri = null
+            ),
+            NutritionCardItem(
+                title = "Lời khuyên",
+                description = "Chia nhỏ bữa ăn ...",
+                imageUri = null
+            )
+        )
     )
 }
 
-@Composable
-fun CholesterolChiTiet(navController: NavHostController) {
-    NutritionDetailScreen(
-        navController = navController,
-        title = "Chế độ ăn ít cholesterol",
-        content = "Chế độ ăn này giúp giảm lượng cholesterol trong máu, tốt cho tim mạch.",
-        additionalContent = { /* Thêm thẻ và hình ảnh cho ít cholesterol ở đây */ }
-    )
-}
-
-@Composable
-fun AnChayChiTiet(navController: NavHostController) {
-    NutritionDetailScreen(
-        navController = navController,
-        title = "Chế độ ăn chay",
-        content = "Chế độ ăn không bao gồm thịt và các sản phẩm từ động vật.",
-        additionalContent = { // Thêm thẻ và hình ảnh cho ăn chay ở đây
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
-                ) {
-                    Text(
-                        text = "Thực phẩm thường dùng trong chế độ ăn chay",
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(text = "Rau, củ, quả, các loại đậu, ngũ cốc, nấm...")
-                }
-            }
-            // Thêm thêm thẻ và hình ảnh nếu cần
-        }
-    )
-}
 
 @Composable
 fun NatriChiTiet(navController: NavHostController) {
-    NutritionDetailScreen(
-        navController = navController,
-        title = "Chế độ ăn ít natri",
-        content = "Chế độ ăn này giúp kiểm soát huyết áp, phù hợp cho người bị cao huyết áp.",
-        additionalContent = { /* Thêm thẻ và hình ảnh cho ít natri ở đây */ }
+    NutritionCardEditor(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        initialItems = listOf(
+            NutritionCardItem(
+                title = "Thực phẩm nên tránh",
+                description = "Hạn chế muối, đồ hộp, mì ăn liền và thức ăn nhanh chứa nhiều natri gây hại tim mạch.",
+                imageUri = null // Không có ảnh
+            ),
+            NutritionCardItem(
+                title = "Thực phẩm ưu tiên",
+                description = "Ăn nhiều rau xanh, trái cây và đậu giúp cân bằng natri. Dùng thảo mộc thay muối để tăng vị.",
+                imageUri = null // Không có ảnh
+            ),
+            NutritionCardItem(
+                title = "Lời khuyên chuyên gia",
+                description = "Ăn ít natri, uống đủ nước và theo dõi huyết áp thường xuyên giúp bảo vệ tim mạch và sức khỏe.",
+                imageUri = null // Không có ảnh
+            )
+        )
+    )
+}
+
+@Composable
+fun ProteinThapChiTiet(navController: NavHostController) {
+    NutritionCardEditor(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        initialItems = listOf(
+            NutritionCardItem(
+                title = "Chế độ ăn ít protein",
+                description = "Phù hợp với người suy thận hoặc gan, giúp giảm gánh nặng lọc thải, ngăn ngừa tổn thương thêm.",
+                imageUri = null // Không có ảnh
+            ),
+            NutritionCardItem(
+                title = "Chế độ ăn giàu protein",
+                description = "Cần cho vận động viên, người tăng cơ hoặc phục hồi. Protein giúp xây dựng cơ và nâng cao sức khỏe.",
+                imageUri = null // Không có ảnh
+            ),
+            NutritionCardItem(
+                title = "Lời khuyên",
+                description = "Tham khảo bác sĩ hoặc chuyên gia dinh dưỡng để cân bằng protein phù hợp với sức khỏe và nhu cầu.",
+                imageUri = null // Không có ảnh
+            )
+        )
     )
 }
 
 
 @Composable
-fun ProteinThapChiTiet(navController: NavHostController) {
-    NutritionDetailScreen(
-        navController = navController,
-        title = "Chế độ dinh dưỡng ít và giàu protein",
-        content = "Chế độ ăn này có thể được chỉ định cho một số tình trạng sức khỏe đặc biệt.",
-        additionalContent = { /* Thêm thẻ và hình ảnh cho protein ở đây */ }
+fun CholesterolChiTiet(navController: NavHostController) {
+    NutritionCardEditor(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        initialItems = listOf(
+            NutritionCardItem(
+                title = "Các loại cholesterol",
+                description = "• LDL (xấu): Gây tích tụ mảng bám, làm tắc nghẽn mạch máu.\n" +
+                        "• HDL (tốt): Giúp loại bỏ cholesterol xấu khỏi cơ thể.\n" +
+                        "• Triglycerides: Chất béo máu, tăng cao gây hại tim.",
+                imageUri = null // Không cần ảnh, hoặc sử dụng Uri nếu có
+            ),
+            NutritionCardItem(
+                title = "Nguyên nhân tăng cholesterol",
+                description = "• Ăn nhiều chất béo bão hòa, trans fat.\n" +
+                        "• Ít vận động, thừa cân.\n" +
+                        "• Yếu tố di truyền, bệnh lý.",
+                imageUri = null // Không cần ảnh
+            ),
+            NutritionCardItem(
+                title = "Cách kiểm soát",
+                description = "• Ăn nhiều rau, trái cây, chất xơ.\n" +
+                        "• Hạn chế chất béo bão hòa, chọn dầu thực vật.\n" +
+                        "• Tập thể dục đều đặn.\n" +
+                        "• Kiểm soát cân nặng, khám sức khỏe định kỳ.",
+                imageUri = null // Không cần ảnh
+            )
+        )
     )
 }
+
+
+@Composable
+fun AnChayChiTiet(navController: NavHostController) {
+    NutritionCardEditor(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        initialItems = listOf(
+            NutritionCardItem(
+                title = "Các loại ăn chay",
+                description = "• Vegan: Không dùng sản phẩm động vật.\n" +
+                        "• Lacto-ovo: Có trứng và sữa.\n" +
+                        "• Bán phần: Thỉnh thoảng ăn cá, thịt.",
+                imageUri = null // Không có ảnh
+            ),
+            NutritionCardItem(
+                title = "Lợi ích sức khỏe",
+                description = "• Giảm nguy cơ bệnh tim.\n" +
+                        "• Hỗ trợ kiểm soát cân nặng.\n" +
+                        "• Nhiều chất chống oxy hóa, vitamin.\n" +
+                        "• Cải thiện tiêu hóa nhờ chất xơ.",
+                imageUri = null // Không có ảnh
+            ),
+            NutritionCardItem(
+                title = "Nguồn protein chay",
+                description = "• Đậu, đỗ, hạt, ngũ cốc nguyên hạt.\n" +
+                        "• Đậu nành, đậu hũ, sữa đậu nành.\n" +
+                        "• Bổ sung vitamin B12, sắt, omega-3.",
+                imageUri = null // Không có ảnh
+            )
+        )
+    )
+}
+

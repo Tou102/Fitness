@@ -18,6 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.material3.MaterialTheme
+
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.runtime.remember
 
@@ -29,6 +30,14 @@ import pl.droidsonroids.gif.GifImageView
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+=======
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import com.example.fitness.NutritionItem
+import com.example.fitness.R
+
 
 @Composable
 fun WorkoutDetailScreen(
@@ -219,6 +228,7 @@ fun ExerciseItem(
 ) {
     Card(
         modifier = Modifier
+
             .fillMaxWidth()
             .padding(vertical = 4.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
@@ -234,6 +244,7 @@ fun ExerciseItem(
             Text(
                 text = exercise.description ?: "",
                 style = MaterialTheme.typography.bodyMedium
+
             )
             Spacer(modifier = Modifier.height(8.dp))
 
@@ -262,6 +273,7 @@ fun ExerciseItem(
         }
     }
 }
+
 
 @Composable
 fun ExerciseDialog(
@@ -357,6 +369,7 @@ fun ExerciseDialog(
         }
     )
 }
+
 
 
 
