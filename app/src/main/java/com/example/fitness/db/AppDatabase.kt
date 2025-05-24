@@ -12,17 +12,11 @@ import com.example.fitness.entity.User
 
 @Database(entities = [User::class, Exercise::class], version = 2)
 
-import com.example.fitness.dao.NutritionDetailDao
-import com.example.fitness.dao.UserDao
-import com.example.fitness.entity.NutritionDetail
-import com.example.fitness.entity.User
-
-@Database(entities = [User::class, NutritionDetail::class], version = 2)
 
 abstract class AppDatabase : RoomDatabase() {
     abstract fun exerciseDao(): ExerciseDao
     abstract fun userDao(): UserDao
-    abstract fun nutritionDetailDao(): NutritionDetailDao
+
 
     companion object {
         @Volatile

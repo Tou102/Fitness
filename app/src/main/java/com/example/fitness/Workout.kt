@@ -55,22 +55,6 @@ fun WorkoutScreen(navController: NavHostController) {
                 .padding(top = 16.dp),
             horizontalArrangement = Arrangement.SpaceBetween // Để các nút ở hai đầu
         ) {
-            Button(
-                onClick = { navController.navigate("nutrition") }, // Điều hướng về màn hình chế độ dinh dưỡng
-                modifier = Modifier.weight(1f) // Chia đều không gian
-            ) {
-
-                Text("Quay lại")
-            }
-
-            Spacer(modifier = Modifier.width(16.dp)) // Thêm khoảng cách giữa hai nút
-
-            Button(
-                onClick = { navController.navigate("home") }, // Điều hướng đến màn hình chính
-                modifier = Modifier.weight(1f) // Chia đều không gian
-            ) {
-                Text("Tiếp tục")
-            }
 
                
         }

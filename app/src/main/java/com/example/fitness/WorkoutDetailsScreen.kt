@@ -30,7 +30,7 @@ import pl.droidsonroids.gif.GifImageView
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-=======
+
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import coil.compose.AsyncImage
@@ -174,13 +174,7 @@ fun BaiTap18den29(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        GifImage(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(150.dp)
-                .padding(horizontal = 16.dp),
-            resId = R.drawable.exercise_2
-        )
+
 
         Spacer(modifier = Modifier.height(16.dp))
 

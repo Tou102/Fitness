@@ -2,9 +2,9 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-
 import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
 import androidx.navigation.NavController
 
 @Composable
@@ -61,11 +61,35 @@ fun ProfileScreen(navController: NavController) {
 
         Button(
             onClick = {
-                // TODO: Xử lý lưu dữ liệu
+                // Xử lý lưu dữ liệu tại đây, rồi điều hướng
+                navController.navigate("calo") // Điều hướng sang màn hình khác sau khi lưu
             },
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("Lưu thông tin")
+        }
+    }
+}
+
+@Composable
+fun InfoSavedScreen() {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = "Thông tin đã được lưu!",
+            style = MaterialTheme.typography.headlineSmall,
+            modifier = Modifier.padding(bottom = 24.dp)
+        )
+
+        Button(
+            onClick = { /* Điều hướng trở lại hoặc ra ngoài */ },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Quay lại")
         }
     }
 }

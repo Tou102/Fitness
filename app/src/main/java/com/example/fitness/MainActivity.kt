@@ -1,5 +1,6 @@
 package com.example.fitness
 
+
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -19,6 +20,9 @@ class MainActivity : ComponentActivity() {
             FitnessTheme {
                 Surface(color = MaterialTheme.colorScheme.background) {
                     MainScreen()
+
+
+
                 }
             }
         }
