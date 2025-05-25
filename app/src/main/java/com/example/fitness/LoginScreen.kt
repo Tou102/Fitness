@@ -89,6 +89,7 @@ fun LoginScreen(navController: NavHostController, userViewModel: UserViewModel) 
                 userViewModel.viewModelScope.launch {
                     val user = userViewModel.loginUser(username, password)
                     if (user != null) {
+                        userViewModel.loadUserByUsername(user.username)
                         Toast.makeText(context, "Đăng nhập thành công", Toast.LENGTH_SHORT).show()
                         navController.navigate("gioithieu") // Điều hướng tới màn hình chính
                     } else {

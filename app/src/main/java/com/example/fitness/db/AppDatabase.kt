@@ -10,23 +10,19 @@ import com.example.fitness.dao.UserDao
 import com.example.fitness.entity.Exercise
 import com.example.fitness.entity.User
 
-@Database(entities = [User::class, Exercise::class], version = 2)
-
 import com.example.fitness.dao.NutritionDetailDao
-import com.example.fitness.dao.UserDao
+
 import com.example.fitness.entity.NutritionDetail
-import com.example.fitness.entity.User
 
-@Database(entities = [User::class, NutritionDetail::class], version = 2)
 
+@Database(entities = [User::class, NutritionDetail::class, Exercise::class], version = 3)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun exerciseDao(): ExerciseDao
     abstract fun userDao(): UserDao
     abstract fun nutritionDetailDao(): NutritionDetailDao
 
     companion object {
-        @Volatile
-        private var INSTANCE: AppDatabase? = null
+        @Volatile private var INSTANCE: AppDatabase? = null
 
         fun getDatabase(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
@@ -36,10 +32,10 @@ abstract class AppDatabase : RoomDatabase() {
                     "fitness_database"
                 ).fallbackToDestructiveMigration()
                     .build()
-
                 INSTANCE = instance
                 instance
             }
         }
     }
 }
+

@@ -3,14 +3,14 @@ package com.example.fitness.ui.theme
 import BieuDo
 import BmiScreen
 
-import CaloChiTiet
-import CholesterolChiTiet
-import NatriChiTiet
-import ProteinThapChiTiet
+//import CaloChiTiet
+//import CholesterolChiTiet
+//import NatriChiTiet
+//import ProteinThapChiTiet
 
 import NutritionDetailViewModel
 import ProfileScreen
-import WorkoutDetailScreen
+//import WorkoutDetailScreen
 
 
 import android.content.Context
@@ -34,11 +34,11 @@ import com.example.fitness.viewModelFactory.ExerciseViewModelFactory
 
 import com.example.fitness.*
 
-import com.example.fitness.db.AppDatabase
+
 import com.example.fitness.ui.screens.FitnessIntroPager
 
 
-import com.example.fitness.viewModel.UserViewModel
+
 import com.example.fitness.viewModelFactory.UserViewModelFactory
 
 @Composable
@@ -78,6 +78,9 @@ fun AppNavigation(
         composable("gioithieu") {
             FitnessIntroPager(navController = navController)
         }
+        composable("profile") {
+            ProfileScreen(navController = navController, userViewModel = userViewModel)
+        }
 
         composable("anlong_detail") { AnLongChiTiet(navController) }
         composable("ankieng_detail") { AnKiengChiTiet(navController) }
@@ -90,12 +93,5 @@ fun AppNavigation(
         composable("workoutDetails/18-29") {
             BaiTap18den29(navController, exerciseViewModel)
         }
-
-
-
-        composable("profile") {
-            ProfileScreen(navController = navController)
-        }
-
     }
 }
