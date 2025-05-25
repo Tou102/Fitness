@@ -18,6 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.material3.MaterialTheme
+import com.example.fitness.viewModel.ExerciseViewModel
 
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.runtime.remember
@@ -25,18 +26,10 @@ import androidx.compose.runtime.remember
 import androidx.navigation.NavHostController
 import androidx.compose.ui.viewinterop.AndroidView
 import com.example.fitness.entity.Exercise
-import com.example.fitness.viewModel.ExerciseViewModel
+
 import pl.droidsonroids.gif.GifImageView
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-=======
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
-import coil.compose.AsyncImage
-import coil.request.ImageRequest
-import com.example.fitness.NutritionItem
-import com.example.fitness.R
 
 
 @Composable
@@ -116,10 +109,15 @@ fun WorkoutDetailScreen(
     }
 }
 
+
 @Composable
-fun BaiTap18den29(
+fun ExerciseGroupScreen(
     navController: NavHostController,
-    exerciseViewModel: ExerciseViewModel
+    exerciseViewModel: ExerciseViewModel,
+    groupName: String,
+    title: String,
+    description: String,
+    benefits: List<String>
 ) {
     val exercises by exerciseViewModel.exercises.collectAsState()
 
@@ -130,21 +128,17 @@ fun BaiTap18den29(
         exerciseViewModel.loadExercises()
     }
 
+    val filteredExercises = exercises.filter { it.group == groupName }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
             .padding(16.dp)
     ) {
-        Text(
-            text = "Tuổi: 18-29",
-            style = MaterialTheme.typography.headlineMedium
-        )
+        Text(text = title, style = MaterialTheme.typography.headlineMedium)
         Spacer(modifier = Modifier.height(12.dp))
-        Text(
-            text = "Bài tập phù hợp với độ tuổi này bao gồm các bài tập thể lực cơ bản và các bài tập tăng cường sức bền.",
-            style = MaterialTheme.typography.bodyLarge
-        )
+        Text(text = description, style = MaterialTheme.typography.bodyLarge)
         Spacer(modifier = Modifier.height(16.dp))
 
         Card(
@@ -152,16 +146,17 @@ fun BaiTap18den29(
             elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Text(text = "Các bài tập thể lực cơ bản", style = MaterialTheme.typography.titleMedium)
+                Text(text = "Lợi ích của bài tập:", style = MaterialTheme.typography.titleMedium)
                 Spacer(modifier = Modifier.height(8.dp))
-                Text(text = "Squats, Push-ups, Lunges...")
+                benefits.forEach { benefit ->
+                    Text(text = "- $benefit", style = MaterialTheme.typography.bodyMedium)
+                }
             }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Hiển thị danh sách bài tập lấy từ ViewModel (Room)
-        exercises.forEach { exercise ->
+        filteredExercises.forEach { exercise ->
             ExerciseItem(
                 exercise = exercise,
                 onEdit = {
@@ -174,16 +169,6 @@ fun BaiTap18den29(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        GifImage(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(150.dp)
-                .padding(horizontal = 16.dp),
-            resId = R.drawable.exercise_2
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
         Button(
             onClick = {
                 editingExercise = null
@@ -193,20 +178,105 @@ fun BaiTap18den29(
         ) {
             Text("Thêm bài tập")
         }
+
     }
 
     if (showDialog) {
         ExerciseDialog(
             exercise = editingExercise,
+            group = groupName,
             onDismiss = { showDialog = false },
-            onSave = {
-                if (it.id == 0) exerciseViewModel.addExercise(it)
-                else exerciseViewModel.updateExercise(it)
+            onSave = { exercise ->
+                val updatedExercise = exercise.copy(group = groupName)
+                if (exercise.id == 0) exerciseViewModel.addExercise(updatedExercise)
+                else exerciseViewModel.updateExercise(updatedExercise)
                 showDialog = false
             }
         )
     }
 }
+
+
+@Composable
+fun FullBody(
+    navController: NavHostController,
+    exerciseViewModel: ExerciseViewModel
+) {
+    ExerciseGroupScreen(
+        navController = navController,
+        exerciseViewModel = exerciseViewModel,
+        groupName = "FullBody",
+        title = "Bài tập full body",
+        description = "Bài tập toàn thân phù hợp cho mọi cấp độ, giúp tăng sức mạnh và sự dẻo dai.",
+        benefits = listOf(
+            "Tăng cường sức mạnh cơ bắp toàn diện",
+            "Cải thiện sức bền và khả năng vận động",
+            "Đốt cháy calo hiệu quả",
+            "Hỗ trợ giảm cân và duy trì vóc dáng",
+            "Tăng cường sức khỏe tim mạch",
+            "Phù hợp với mọi trình độ tập luyện"
+        )
+    )
+}
+
+@Composable
+fun Abs(navController: NavHostController, exerciseViewModel: ExerciseViewModel) {
+    ExerciseGroupScreen(
+        navController = navController,
+        exerciseViewModel = exerciseViewModel,
+        groupName = "Abs",
+        title = "Bài tập cơ bụng (Abs)",
+        description = "Bài tập giúp tăng cường sức mạnh cơ bụng, hỗ trợ giữ thăng bằng và cải thiện vóc dáng.",
+        benefits = listOf(
+            "Tăng sức mạnh vùng bụng",
+            "Cải thiện tư thế và thăng bằng",
+            "Hỗ trợ giảm mỡ vùng bụng",
+            "Giúp cơ thể săn chắc hơn"
+        )
+    )
+}
+
+@Composable
+fun Chest(
+    navController: NavHostController,
+    exerciseViewModel: ExerciseViewModel
+) {
+    ExerciseGroupScreen(
+        navController = navController,
+        exerciseViewModel = exerciseViewModel,
+        groupName = "Chest",
+        title = "Bài tập ngực (Chest)",
+        description = "Các bài tập tăng cường sức mạnh cơ ngực, giúp phát triển cơ bắp và cải thiện sức mạnh tổng thể.",
+        benefits = listOf(
+            "Tăng cường sức mạnh cơ ngực",
+            "Cải thiện tư thế và sức khỏe tổng thể",
+            "Phát triển cơ bắp săn chắc",
+            "Hỗ trợ thực hiện các hoạt động thể chất khác"
+        )
+    )
+}
+
+@Composable
+fun Arm(
+    navController: NavHostController,
+    exerciseViewModel: ExerciseViewModel
+) {
+    ExerciseGroupScreen(
+        navController = navController,
+        exerciseViewModel = exerciseViewModel,
+        groupName = "Arm",
+        title = "Bài tập tay (Arm)",
+        description = "Các bài tập giúp phát triển cơ tay, tăng sức mạnh và sự săn chắc.",
+        benefits = listOf(
+            "Tăng sức mạnh cơ tay",
+            "Cải thiện sức bền và độ săn chắc",
+            "Hỗ trợ vận động và nâng đỡ",
+            "Giúp phát triển vóc dáng cân đối"
+        )
+    )
+}
+
+
 
 @Composable
 fun GifImage(modifier: Modifier = Modifier, resId: Int) {
@@ -278,12 +348,13 @@ fun ExerciseItem(
 @Composable
 fun ExerciseDialog(
     exercise: Exercise?,
+    group: String,
     onDismiss: () -> Unit,
     onSave: (Exercise) -> Unit
 ) {
     var name by remember { mutableStateOf(exercise?.name ?: "") }
     var description by remember { mutableStateOf(exercise?.description ?: "") }
-    var durationText by remember { mutableStateOf(exercise?.duration?.toString() ?: "") }
+    var repText by remember { mutableStateOf(exercise?.rep?.toString() ?: "") }
     var selectedGif by remember { mutableStateOf(exercise?.gifRes ?: R.drawable.exercise_1) }
 
     val gifOptions = listOf(
@@ -310,11 +381,11 @@ fun ExerciseDialog(
                     label = { Text("Mô tả") }
                 )
                 OutlinedTextField(
-                    value = durationText,
+                    value = repText,
                     onValueChange = {
-                        durationText = it.filter { c -> c.isDigit() }
+                        repText = it.filter { c -> c.isDigit() }
                     },
-                    label = { Text("Thời gian (phút)") },
+                    label = { Text("Số lần (rep)") },
                     singleLine = true
                 )
 
@@ -345,15 +416,16 @@ fun ExerciseDialog(
         confirmButton = {
             Button(
                 onClick = {
-                    val duration = durationText.toIntOrNull() ?: 0
+                    val rep = repText.toIntOrNull() ?: 0
                     if (name.isNotBlank()) {
                         onSave(
                             Exercise(
                                 id = exercise?.id ?: 0,
                                 name = name,
                                 description = description,
-                                duration = duration,
-                                gifRes = selectedGif
+                                rep = rep,
+                                gifRes = selectedGif,
+                                group = group
                             )
                         )
                     }
@@ -369,6 +441,10 @@ fun ExerciseDialog(
         }
     )
 }
+
+
+
+
 
 
 
