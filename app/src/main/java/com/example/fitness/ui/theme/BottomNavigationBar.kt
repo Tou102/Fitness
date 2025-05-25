@@ -24,6 +24,7 @@ fun BottomNavigationBar(navController: NavController) {
         BottomNavItem.Profile
     )
 
+    // Nhận route hiện tại từ NavController
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
@@ -35,8 +36,10 @@ fun BottomNavigationBar(navController: NavController) {
             .clip(RoundedCornerShape(16.dp))
     ) {
         items.forEach { item ->
+            // Kiểm tra mục nào được chọn
             val selected = currentRoute == item.route
 
+            // Màu sắc của biểu tượng và text khi được chọn
             val iconTint by animateColorAsState(
                 targetValue = if (selected) MaterialTheme.colorScheme.primary else Color.Gray
             )
@@ -44,11 +47,14 @@ fun BottomNavigationBar(navController: NavController) {
                 targetValue = if (selected) MaterialTheme.colorScheme.primary else Color.Gray
             )
 
+            // Tạo item cho BottomNavigation
             NavigationBarItem(
                 selected = selected,
                 onClick = {
+                    // Điều hướng chỉ khi chưa chọn
                     if (!selected) {
                         navController.navigate(item.route) {
+                            // Pop các destination trước đó và giữ trạng thái màn hình
                             popUpTo(navController.graph.startDestinationId) { saveState = true }
                             launchSingleTop = true
                             restoreState = true
@@ -72,7 +78,7 @@ fun BottomNavigationBar(navController: NavController) {
                         modifier = Modifier.padding(top = 2.dp)
                     )
                 },
-                alwaysShowLabel = true,
+                alwaysShowLabel = true, // Luôn hiển thị label
                 colors = NavigationBarItemDefaults.colors(
                     selectedIconColor = MaterialTheme.colorScheme.primary,
                     unselectedIconColor = Color.Gray,

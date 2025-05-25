@@ -19,9 +19,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.LatLng
@@ -33,10 +30,16 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Stop
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.fitness.entity.CaloriesRecordEntity
+import com.example.fitness.viewModel.CaloriesViewModel
 
 @SuppressLint("MissingPermission")
 @Composable
-fun RunningTrackerScreen(onNavigateToSave: (Float, Long, Float) -> Unit) {
+fun RunningTrackerScreen(
+    onNavigateToSave: () -> Unit,
+    caloriesViewModel: CaloriesViewModel
+) {
     val context = LocalContext.current
     var speed by remember { mutableStateOf(0f) }
     var distance by remember { mutableStateOf(0f) }
@@ -51,7 +54,7 @@ fun RunningTrackerScreen(onNavigateToSave: (Float, Long, Float) -> Unit) {
 
     val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
         if (!granted) {
-            // Có thể thông báo người dùng
+            // Có thể thông báo người dùng nếu cần
         }
     }
 
@@ -67,6 +70,19 @@ fun RunningTrackerScreen(onNavigateToSave: (Float, Long, Float) -> Unit) {
             delay(1000L)
             runningTime++
         }
+    }
+
+    val caloriesBurned = distance * 0.06f
+
+    fun saveRun() {
+        val record = CaloriesRecordEntity(
+            caloriesBurned = caloriesBurned,
+            timestamp = System.currentTimeMillis(),
+            distance = distance,
+            runningTime = runningTime
+        )
+        caloriesViewModel.addRecord(record)  // Lưu vào DB qua ViewModel
+        onNavigateToSave()  // Điều hướng màn khác
     }
 
     val locationCallback = remember {
@@ -116,20 +132,6 @@ fun RunningTrackerScreen(onNavigateToSave: (Float, Long, Float) -> Unit) {
         isRunning = false
     }
 
-    fun resumeRunning() {
-        if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION)
-            != android.content.pm.PackageManager.PERMISSION_GRANTED) {
-            permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
-            return
-        }
-        isRunning = true
-        val locationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 2000)
-            .setMinUpdateIntervalMillis(1000)
-            .build()
-        fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, null)
-    }
-
-    val caloriesBurned = distance * 0.06f
     val cameraPositionState = rememberCameraPositionState()
 
     LaunchedEffect(currentLatLng) {
@@ -139,11 +141,16 @@ fun RunningTrackerScreen(onNavigateToSave: (Float, Long, Float) -> Unit) {
     }
 
     Column(
-        modifier = Modifier.fillMaxSize().background(Color(0xFFF5F5F5)).padding(16.dp),
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFF5F5F5))
+            .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Box(
-            modifier = Modifier.fillMaxWidth().weight(0.5f)
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(0.5f)
                 .border(2.dp, Color(0xFF0288D1), RoundedCornerShape(16.dp))
                 .background(Color.White, RoundedCornerShape(16.dp))
         ) {
@@ -163,7 +170,13 @@ fun RunningTrackerScreen(onNavigateToSave: (Float, Long, Float) -> Unit) {
 
         Spacer(Modifier.height(16.dp))
 
-        Text("Trình theo dõi chạy bộ", fontSize = 28.sp, fontWeight = FontWeight.ExtraBold, color = Color(0xFF0288D1), modifier = Modifier.padding(bottom = 16.dp))
+        Text(
+            "Trình theo dõi chạy bộ",
+            fontSize = 28.sp,
+            fontWeight = FontWeight.ExtraBold,
+            color = Color(0xFF0288D1),
+            modifier = Modifier.padding(bottom = 16.dp)
+        )
 
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
             InfoBox("Speed", "%.2f km/h".format(speed))
@@ -214,7 +227,6 @@ fun RunningTrackerScreen(onNavigateToSave: (Float, Long, Float) -> Unit) {
 
             Button(
                 onClick = {
-                    // Reset tất cả dữ liệu về trạng thái ban đầu
                     isRunning = false
                     distance = 0f
                     speed = 0f
@@ -223,24 +235,13 @@ fun RunningTrackerScreen(onNavigateToSave: (Float, Long, Float) -> Unit) {
                     pathPoints.clear()
                     currentLatLng = null
                 },
-                enabled = runningTime > 0L,  // Chỉ bật nút khi có dữ liệu để reset
-                modifier = Modifier
-                    .weight(1f)
-                    .height(50.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFFF44336), // Màu đỏ báo reset/xóa
-                    disabledContainerColor = Color(0xFFB0BEC5)
-                ),
+                enabled = runningTime > 0L,
+                modifier = Modifier.weight(1f).height(50.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF44336), disabledContainerColor = Color(0xFFB0BEC5)),
                 shape = RoundedCornerShape(12.dp)
             ) {
-                Icon(
-                    imageVector = Icons.Filled.Refresh,
-                    contentDescription = "Reset",
-                    tint = Color.White,
-                    modifier = Modifier.size(28.dp)
-                )
+                Icon(Icons.Filled.Refresh, contentDescription = "Reset", tint = Color.White, modifier = Modifier.size(28.dp))
             }
-
 
             Spacer(Modifier.width(12.dp))
 
@@ -263,7 +264,7 @@ fun RunningTrackerScreen(onNavigateToSave: (Float, Long, Float) -> Unit) {
                 confirmButton = {
                     Button(onClick = {
                         stopLocationUpdates()
-                        onNavigateToSave(distance, runningTime, caloriesBurned)
+                        saveRun()
                         showStopDialog = false
                     }) {
                         Text("Có")

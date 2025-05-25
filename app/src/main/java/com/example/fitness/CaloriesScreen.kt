@@ -1,3 +1,4 @@
+import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -5,43 +6,28 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.Saver
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import com.example.fitness.db.AppDatabase
+import com.example.fitness.entity.CaloriesRecordEntity
+import com.example.fitness.repository.CaloriesRepository
+import com.example.fitness.viewModel.CaloriesViewModel
+
+
+import com.example.fitness.viewModelFactory.CaloriesViewModelFactory
 import java.text.SimpleDateFormat
 import java.util.*
 
-data class CaloriesRecord(
-    val caloriesBurned: Float,
-    val timestamp: Long = System.currentTimeMillis()
-)
-
-val CaloriesRecordListSaver: Saver<MutableList<CaloriesRecord>, Map<String, List<Any>>> = Saver(
-    save = { list ->
-        mapOf(
-            "calories" to list.map { it.caloriesBurned.toDouble() },
-            "timestamps" to list.map { it.timestamp }
-        )
-    },
-    restore = { map ->
-        val calories = map["calories"] as? List<Double> ?: emptyList()
-        val timestamps = map["timestamps"] as? List<Long> ?: emptyList()
-        calories.zip(timestamps) { cal, ts ->
-            CaloriesRecord(cal.toFloat(), ts)
-        }.toMutableStateList()
-    }
-)
-
 @Composable
 fun CaloriesRecordCard(
-    record: CaloriesRecord,
-    onDelete: (CaloriesRecord) -> Unit
+    record: CaloriesRecordEntity,
+    onDelete: (CaloriesRecordEntity) -> Unit
 ) {
     val sdf = remember { SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()) }
     val date = remember(record.timestamp) { Date(record.timestamp) }
@@ -93,11 +79,12 @@ fun CaloriesRecordCard(
     }
 }
 
+
 @Composable
 fun CaloriesStatisticsScreen(
-    records: List<CaloriesRecord>,
+    records: List<CaloriesRecordEntity>,
     onBack: () -> Unit,
-    onDeleteRecord: (CaloriesRecord) -> Unit
+    onDeleteRecord: (CaloriesRecordEntity) -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -126,7 +113,7 @@ fun CaloriesStatisticsScreen(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                items(records, key = { it.timestamp }) { record ->
+                items(records, key = { it.id }) { record ->
                     CaloriesRecordCard(record = record, onDelete = onDeleteRecord)
                 }
             }
@@ -147,63 +134,61 @@ fun CaloriesStatisticsScreen(
     }
 }
 
+
+@Composable
+fun CaloriesScreenWithViewModel(
+    navController: NavHostController,
+    context: Context
+) {
+    val db = remember { AppDatabase.getDatabase(context) }
+    val repository = remember { CaloriesRepository(db.caloriesRecordDao()) }
+    val factory = remember { CaloriesViewModelFactory(repository) }
+    val viewModel: CaloriesViewModel = viewModel(factory = factory)
+
+    CaloriesScreen(
+        navController = navController,
+        caloriesViewModel = viewModel
+    )
+}
+
+
+// CaloriesScreen.kt (hoặc trong file UI bạn có màn CaloriesScreen)
 @Composable
 fun CaloriesScreen(
     navController: NavHostController,
-    initialCaloriesRecord: CaloriesRecord? = null
+    caloriesViewModel: CaloriesViewModel
 ) {
-    val caloriesRecords = rememberSaveable(saver = CaloriesRecordListSaver) {
-        if (initialCaloriesRecord != null) {
-            mutableStateListOf(initialCaloriesRecord)
-        } else {
-            mutableStateListOf()
-        }
-    }
+    val records by caloriesViewModel.records.collectAsState()
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-    ) {
-
+    Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
         CaloriesStatisticsScreen(
-            records = caloriesRecords,
+            records = records,
             onBack = { navController.popBackStack() },
-            onDeleteRecord = { record ->
-                caloriesRecords.remove(record)
-            }
+            onDeleteRecord = { record -> caloriesViewModel.deleteRecord(record) }
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        Button(
+            onClick = {
+                val newRecord = CaloriesRecordEntity(
+                    caloriesBurned = (80..200).random().toFloat(),
+                    timestamp = System.currentTimeMillis(),
+                    distance = 0f,
+                    runningTime = 0L
+                )
+                caloriesViewModel.addRecord(newRecord)
+            },
+            modifier = Modifier.fillMaxWidth().height(50.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0288D1)),
+            shape = RoundedCornerShape(12.dp)
         ) {
-            Button(
-                onClick = {
-                    val newCalories = (80..200).random().toFloat()
-                    caloriesRecords.add(0, CaloriesRecord(newCalories))
-                },
-                modifier = Modifier
-                    .weight(1f)
-                    .height(50.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0288D1)),
-                shape = RoundedCornerShape(12.dp)
-            ) {
-                Text("Thêm bản ghi calo", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.White)
-            }
-
-            Button(
-                onClick = { caloriesRecords.clear() },
-                modifier = Modifier
-                    .weight(1f)
-                    .height(50.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD32F2F)),
-                shape = RoundedCornerShape(12.dp)
-            ) {
-                Text("Xóa tất cả", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.White)
-            }
+            Text("Thêm bản ghi calo", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.White)
         }
     }
 }
+
+
+
+
+
