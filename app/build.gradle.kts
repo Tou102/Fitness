@@ -74,8 +74,12 @@ dependencies {
     implementation("com.airbnb.android:lottie-compose:6.0.0")
     implementation ("androidx.compose.material3:material3:1.0.1")
     implementation ("androidx.compose.material:material-icons-extended:<version>")
-
+    implementation ("com.google.android.gms:play-services-location:21.0.1")
+    implementation ("com.google.android.gms:play-services-maps:18.0.2")
     implementation ("pl.droidsonroids.gif:android-gif-drawable:1.2.29")
+    implementation ("com.google.maps.android:maps-compose:2.13.0")
+    implementation ("com.google.android.gms:play-services-location:21.0.1")
+
     // Room
     implementation ("androidx.room:room-runtime:2.7.1")
 

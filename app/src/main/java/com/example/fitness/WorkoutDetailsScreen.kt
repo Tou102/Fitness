@@ -32,6 +32,17 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.LaunchedEffect
 
 
+import androidx.compose.runtime.getValue
+
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import com.example.fitness.NutritionItem
+import com.example.fitness.R
+
+
+
 @Composable
 fun WorkoutDetailScreen(
     navController: NavHostController,
@@ -168,6 +179,7 @@ fun ExerciseGroupScreen(
         }
 
         Spacer(modifier = Modifier.height(16.dp))
+
 
         Button(
             onClick = {
