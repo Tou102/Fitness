@@ -9,6 +9,7 @@ data class Exercise(
     val id: Int = 0,
     val name: String,
     val description: String? = null,
-    val duration: Int? = null,
-    val gifRes: Int? = null
+    val rep: Int? = null,
+    val gifRes: Int? = null,
+    val group: String? = null
 )

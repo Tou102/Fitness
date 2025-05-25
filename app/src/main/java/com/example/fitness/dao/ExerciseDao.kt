@@ -21,6 +21,11 @@ interface ExerciseDao {
     @Query("SELECT * FROM exercises")
     suspend fun getAllExercises(): List<Exercise>
 
+    @Query("SELECT * FROM exercises WHERE `group` = :groupName")
+    suspend fun getExercisesByGroup(groupName: String): List<Exercise>
+
+
     @Query("SELECT * FROM exercises WHERE id = :id LIMIT 1")
     suspend fun getExerciseById(id: Int): Exercise?
+
 }

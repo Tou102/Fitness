@@ -6,10 +6,14 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.example.fitness.dao.CaloriesRecordDao
 import com.example.fitness.dao.ExerciseDao
+
+import com.example.fitness.dao.NutritionDetailDao
 import com.example.fitness.dao.UserDao
-import com.example.fitness.dao.WaterIntakeDao
-import com.example.fitness.entity.CaloriesRecordEntity
 import com.example.fitness.entity.Exercise
+import com.example.fitness.entity.NutritionDetail
+import com.example.fitness.entity.User
+
+@Database(entities = [User::class, Exercise::class, NutritionDetail::class], version = 3)
 
 
 
@@ -19,6 +23,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun userDao(): UserDao
     abstract fun caloriesRecordDao(): CaloriesRecordDao
     abstract fun waterIntakeDao(): WaterIntakeDao
+
 
 
     companion object {
