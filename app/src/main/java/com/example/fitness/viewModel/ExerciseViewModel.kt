@@ -11,6 +11,8 @@ import kotlinx.coroutines.launch
 class ExerciseViewModel(private val repository: ExerciseRepository) : ViewModel() {
     private val _exercises = MutableStateFlow<List<Exercise>>(emptyList())
     val exercises: StateFlow<List<Exercise>> = _exercises
+    private val _groupExercises = MutableStateFlow<List<Exercise>>(emptyList())
+    val groupExercises: StateFlow<List<Exercise>> = _groupExercises
     fun loadExercises() {
         viewModelScope.launch {
             val list = repository.getAllExercises()
@@ -18,22 +20,29 @@ class ExerciseViewModel(private val repository: ExerciseRepository) : ViewModel(
         }
     }
 
-    fun addExercise(exercise: Exercise) {
+    fun loadExercisesByGroup(groupName: String) {
         viewModelScope.launch {
-            repository.insert(exercise)
-            loadExercises()  // tải lại dữ liệu sau khi thêm
+            _groupExercises.value = repository.getExercisesByGroup(groupName)
         }
     }
-    fun updateExercise(exercise: Exercise) {
-        viewModelScope.launch {
-            repository.update(exercise)
-            loadExercises()  // tải lại dữ liệu sau khi sửa
+        fun addExercise(exercise: Exercise) {
+            viewModelScope.launch {
+                repository.insert(exercise)
+                loadExercises()  // tải lại dữ liệu sau khi thêm
+            }
+        }
+
+        fun updateExercise(exercise: Exercise) {
+            viewModelScope.launch {
+                repository.update(exercise)
+                loadExercises()  // tải lại dữ liệu sau khi sửa
+            }
+        }
+
+        fun deleteExercise(exercise: Exercise) {
+            viewModelScope.launch {
+                repository.delete(exercise)
+                loadExercises()  // tải lại dữ liệu sau khi xóa
+            }
         }
     }
-    fun deleteExercise(exercise: Exercise) {
-        viewModelScope.launch {
-            repository.delete(exercise)
-            loadExercises()  // tải lại dữ liệu sau khi xóa
-        }
-    }
-}

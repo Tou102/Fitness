@@ -1,11 +1,11 @@
 package com.example.fitness.dao
-import androidx.lifecycle.LiveData
 import androidx.room.*
 import com.example.fitness.entity.NutritionDetail
 
 @Dao
 interface NutritionDetailDao {
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+
+    @Insert
     suspend fun insert(nutritionDetail: NutritionDetail)
 
     @Update
@@ -15,6 +15,14 @@ interface NutritionDetailDao {
     suspend fun delete(nutritionDetail: NutritionDetail)
 
     @Query("SELECT * FROM nutrition_details ORDER BY id DESC")
-    fun getAllNutritionDetails(): LiveData<List<NutritionDetail>>
+    suspend fun getAllNutritionDetails(): List<NutritionDetail>
+
+    @Query("SELECT * FROM nutrition_details WHERE id = :id")
+    suspend fun getNutritionDetailById(id: Long): NutritionDetail?
+
+    @Query("SELECT * FROM nutrition_details WHERE groupName = :groupName ORDER BY id DESC")
+    suspend fun getNutritionDetailsByGroup(groupName: String): List<NutritionDetail>
+
 }
+
 
