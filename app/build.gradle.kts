@@ -45,6 +45,7 @@ dependencies {
 
     implementation(libs.androidx.runtime.livedata)
     implementation(libs.play.services.location)
+    implementation(libs.androidx.camera.view)
     val room_version = "2.6.1"
     implementation ("com.google.accompanist:accompanist-pager:0.31.5-beta")
     implementation ("com.google.accompanist:accompanist-pager-indicators:0.31.5-beta")

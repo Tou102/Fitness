@@ -1,7 +1,10 @@
 package com.example.fitness
 
+import android.content.Context
 
+import java.io.File
 
+import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -273,7 +276,7 @@ fun NutritionItem(
                 Spacer(modifier = Modifier.height(8.dp))
                 AsyncImage(
                     model = nutritionDetail.imageUri,
-                    contentDescription = "Hình ảnh dinh dưỡng",
+                    contentDescription = null,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(300.dp)
@@ -300,6 +303,22 @@ fun NutritionItem(
 }
 
 
+
+
+fun copyUriToFile(context: Context, uri: Uri, destFile: File): Boolean {
+    return try {
+        context.contentResolver.openInputStream(uri)?.use { inputStream ->
+            destFile.outputStream().use { outputStream ->
+                inputStream.copyTo(outputStream)
+            }
+        }
+        true
+    } catch (e: Exception) {
+        e.printStackTrace()
+        false
+    }
+}
+
 @Composable
 fun NutritionDetailDialog(
     nutritionDetail: NutritionDetail?,
@@ -309,14 +328,31 @@ fun NutritionDetailDialog(
 ) {
     var title by remember { mutableStateOf(nutritionDetail?.title ?: "") }
     var description by remember { mutableStateOf(nutritionDetail?.description ?: "") }
-
-    // Biến để lưu trữ URI của hình ảnh
     var imageUri by remember { mutableStateOf(nutritionDetail?.imageUri ?: "") }
 
-    // Để chọn hình ảnh từ bộ nhớ thiết bị
     val context = LocalContext.current
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
-        imageUri = uri.toString()
+        if (uri != null) {
+            // Tạo file đích trong bộ nhớ app
+            val fileName = "img_${System.currentTimeMillis()}.jpg"
+            val destFile = File(context.filesDir, fileName)
+
+            val copied = copyUriToFile(context, uri, destFile)
+            if (copied) {
+                imageUri = destFile.absolutePath
+            } else {
+                // Nếu copy thất bại thì cấp quyền và lưu URI gốc
+                try {
+                    context.contentResolver.takePersistableUriPermission(
+                        uri,
+                        Intent.FLAG_GRANT_READ_URI_PERMISSION
+                    )
+                } catch (e: SecurityException) {
+                    e.printStackTrace()
+                }
+                imageUri = uri.toString()
+            }
+        }
     }
 
     AlertDialog(
@@ -335,8 +371,6 @@ fun NutritionDetailDialog(
                     onValueChange = { description = it },
                     label = { Text("Mô tả") }
                 )
-
-                // Chọn hình ảnh
                 Spacer(modifier = Modifier.height(16.dp))
                 Button(onClick = { launcher.launch("image/*") }) {
                     Text("Chọn hình ảnh")
@@ -356,21 +390,19 @@ fun NutritionDetailDialog(
             }
         },
         confirmButton = {
-            Button(
-                onClick = {
-                    val newNutritionDetail = nutritionDetail?.copy(
-                        title = title,
-                        description = description,
-                        imageUri = imageUri
-                    ) ?: NutritionDetail(
-                        title = title,
-                        description = description,
-                        imageUri = imageUri,
-                        groupName = group
-                    )
-                    onSave(newNutritionDetail)
-                }
-            ) {
+            Button(onClick = {
+                val newNutritionDetail = nutritionDetail?.copy(
+                    title = title,
+                    description = description,
+                    imageUri = imageUri
+                ) ?: NutritionDetail(
+                    title = title,
+                    description = description,
+                    imageUri = imageUri,
+                    groupName = group
+                )
+                onSave(newNutritionDetail)
+            }) {
                 Text("Lưu")
             }
         },
@@ -498,7 +530,7 @@ fun NatriChiTiet(navController: NavHostController,nutritionDetailViewModel: Nutr
             "Nên uống ít nhất 2 lít nước mỗi ngày.",
             "Ăn nhiều rau củ quả để duy trì sức khỏe.",
 
-        )
+            )
 
     )
 
@@ -508,7 +540,7 @@ fun NatriChiTiet(navController: NavHostController,nutritionDetailViewModel: Nutr
 fun ProteinThapChiTiet(
     navController: NavHostController,
     nutritionDetailViewModel: NutritionDetailViewModel
-    ) {
+) {
     NutritionGroupScreen(
         navController = navController,
         nutritionDetailViewModel = nutritionDetailViewModel,
@@ -533,14 +565,14 @@ fun ProteinThapChiTiet(
 
     )
 
- }
+}
 
 
 @Composable
 fun CholesterolChiTiet(
     navController: NavHostController,
     nutritionDetailViewModel: NutritionDetailViewModel
-    ) {
+) {
     NutritionGroupScreen(
         navController = navController,
         nutritionDetailViewModel = nutritionDetailViewModel,
@@ -567,13 +599,13 @@ fun CholesterolChiTiet(
 
     )
 
-    }
+}
 
 @Composable
 fun AnChayChiTiet(
     navController: NavHostController,
     nutritionDetailViewModel: NutritionDetailViewModel
-    ) {
+) {
     NutritionGroupScreen(
         navController = navController,
         nutritionDetailViewModel = nutritionDetailViewModel,
@@ -600,7 +632,7 @@ fun AnChayChiTiet(
 
     )
 
-    }
+}
 
 
 

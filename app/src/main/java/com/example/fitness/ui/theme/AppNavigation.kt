@@ -1,23 +1,11 @@
 package com.example.fitness.ui.theme
 
 import BmiScreen
-
-
-//import CaloChiTiet
-//import CholesterolChiTiet
-//import NatriChiTiet
-//import ProteinThapChiTiet
-
-import NutritionDetailViewModel
-import ProfileScreen
-//import WorkoutDetailScreen
-
 import CaloriesDailySummaryScreen
 import CaloriesScreen
 import CaloriesScreenWithViewModel
 
 import ProfileScreen
-
 
 import android.content.Context
 import androidx.compose.runtime.Composable
@@ -44,19 +32,11 @@ import com.example.fitness.viewModel.CaloriesViewModel
 import com.example.fitness.viewModelFactory.CaloriesViewModelFactory
 import com.example.fitness.*
 
-
 import com.example.fitness.ui.screens.FitnessIntroPager
 import com.example.fitness.viewModel.NutritionDetailViewModel
 import com.example.fitness.viewModel.WaterIntakeViewModel
 
 import com.example.fitness.viewModelFactory.NutritionDetailViewModelFactory
-
-
-
-
-
-
-
 import com.example.fitness.viewModelFactory.UserViewModelFactory
 
 @Composable
@@ -116,9 +96,6 @@ fun AppNavigation(
         composable("gioithieu") {
             FitnessIntroPager(navController = navController)
         }
-        composable("profile") {
-            ProfileScreen(navController = navController, userViewModel = userViewModel)
-        }
 
         // Detail screens with Nutrition Detail ViewModel
         composable("anlong_detail") { AnLongChiTiet(navController, nutritionDetailViewModel) }
@@ -171,7 +148,7 @@ fun AppNavigation(
             WaterIntakeScreen(navController = navController, db = db)
         }
         composable("profile") {
-            ProfileScreen(navController = navController)
+            ProfileScreen(navController = navController,userViewModel = userViewModel)
         }
         composable("exercise_camera/{id}") { backStackEntry ->
             val id = backStackEntry.arguments?.getString("id")?.toIntOrNull() ?: 0

@@ -1,4 +1,3 @@
-
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -14,6 +13,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Calculate
 import androidx.compose.foundation.Canvas
+import androidx.compose.material.icons.filled.FitnessCenter
+import androidx.compose.material.icons.filled.LocalDrink
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -39,17 +40,13 @@ import java.io.FileOutputStream
 
 import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.ui.Alignment
+
 
 import androidx.navigation.NavController
-
-import com.example.fitness.viewModel.UserViewModel
-
 import coil.compose.AsyncImage
 import com.example.fitness.R
 import com.example.fitness.viewModel.UserViewModel
 import kotlinx.coroutines.launch
-
 
 
 @Composable
@@ -62,10 +59,10 @@ fun ProfileScreen(
 
     val coroutineScope = rememberCoroutineScope()
 
-    // Local state để hiển thị profile, khởi tạo mặc định và update khi user thay đổi
     var username by rememberSaveable(user) { mutableStateOf("Người dùng") }
     var avatarUri by rememberSaveable(user) { mutableStateOf<Uri?>(null) }
     var expandedMenu by remember { mutableStateOf(false) }
+    var infoSavedVisible by remember { mutableStateOf(false) } // trạng thái hiển thị màn thông báo
 
     LaunchedEffect(user) {
         val currentUser = user
@@ -78,21 +75,25 @@ fun ProfileScreen(
         }
     }
 
-    // Launcher for selecting image
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         if (uri != null) avatarUri = uri
     }
 
-    // UI cấu trúc
+    if (infoSavedVisible) {
+        InfoSavedScreen(
+            onBack = { infoSavedVisible = false }
+        )
+        return
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.White)
             .padding(16.dp)
     ) {
-        // Phần UI như bạn đã viết
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -126,7 +127,6 @@ fun ProfileScreen(
                 }
             }
 
-            // Menu icon riêng ở góc trái trên
             Box(modifier = Modifier.align(Alignment.TopStart)) {
                 IconButton(onClick = { expandedMenu = true }) {
                     Icon(
@@ -156,7 +156,7 @@ fun ProfileScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(top = 40.dp), // đẩy xuống khỏi icon menu
+                    .padding(top = 40.dp),
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
@@ -170,10 +170,6 @@ fun ProfileScreen(
                         .padding(bottom = 16.dp),
                     textAlign = TextAlign.Center
                 )
-
-                // ... giữ nguyên phần avatar, tên, BMI button
-
-
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -228,156 +224,185 @@ fun ProfileScreen(
                     )
                 }
 
-
                 Spacer(modifier = Modifier.height(32.dp))
 
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(110.dp),
-                    contentAlignment = Alignment.CenterStart
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .size(130.dp)
-                            .clip(RoundedCornerShape(20.dp))
-                            .background(Color.White)
-                            .border(2.dp, Color(0xFF8AB6FF), RoundedCornerShape(20.dp))
-                            .padding(8.dp),
-                        contentAlignment = Alignment.Center
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center,
-                            modifier = Modifier.fillMaxSize()
+                        Button(
+                            onClick = { navController.navigate("bmi") },
+                            modifier = Modifier
+                                .size(60.dp)
+                                .clip(RoundedCornerShape(12.dp)),
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF3A8DFF)),
+                            contentPadding = PaddingValues(0.dp)
                         ) {
-                            Button(
-                                onClick = { navController.navigate("bmi") },
-                                modifier = Modifier
-                                    .size(60.dp)
-                                    .clip(RoundedCornerShape(12.dp)),
-                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF3A8DFF)),
-                                contentPadding = PaddingValues(0.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Calculate,
-                                    contentDescription = "Tính BMI",
-                                    tint = Color.White,
-                                    modifier = Modifier.size(32.dp)
+                            Icon(
+                                imageVector = Icons.Default.Calculate,
+                                contentDescription = "Tính BMI",
+                                tint = Color.White,
+                                modifier = Modifier.size(32.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Text(
+                            text = "Tính BMI",
+                            style = MaterialTheme.typography.titleMedium,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Button(
+                            onClick = { navController.navigate("water") },
+                            modifier = Modifier
+                                .size(60.dp)
+                                .clip(RoundedCornerShape(12.dp)),
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF3A8DFF)),
+                            contentPadding = PaddingValues(0.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.LocalDrink,
+                                contentDescription = "Nước",
+                                tint = Color.White,
+                                modifier = Modifier.size(32.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Text(
+                            text = "Nước",
+                            style = MaterialTheme.typography.titleMedium,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Button(
+                            onClick = { navController.navigate("calories_daily_summary") },
+                            modifier = Modifier
+                                .size(60.dp)
+                                .clip(RoundedCornerShape(12.dp)),
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF3A8DFF)),
+                            contentPadding = PaddingValues(0.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.FitnessCenter,
+                                contentDescription = "Calo",
+                                tint = Color.White,
+                                modifier = Modifier.size(32.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Text(
+                            text = "Calo",
+                            style = MaterialTheme.typography.titleMedium,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                }
+
+
+            }
+        }
+
+        if (showEditDialog) {
+            var tempUsername by remember(user) { mutableStateOf(username) }
+            var tempAvatarUri by remember(user) { mutableStateOf(avatarUri) }
+            val context = LocalContext.current
+
+            val dialogLauncher = rememberLauncherForActivityResult(
+                contract = ActivityResultContracts.GetContent()
+            ) { uri: Uri? ->
+                if (uri != null) {
+                    coroutineScope.launch {
+                        val path = copyUriToInternalStorage(
+                            context,
+                            uri,
+                            "avatar_${System.currentTimeMillis()}.jpg"
+                        )
+                        if (path != null) {
+                            tempAvatarUri = Uri.fromFile(File(path))
+                        }
+                    }
+                }
+            }
+
+            AlertDialog(
+                onDismissRequest = { showEditDialog = false },
+                title = { Text("Chỉnh sửa hồ sơ") },
+                text = {
+                    Column {
+                        OutlinedTextField(
+                            value = tempUsername,
+                            onValueChange = { tempUsername = it },
+                            label = { Text("Tên người dùng") },
+                            singleLine = true
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text("Chọn ảnh đại diện:")
+                        Box(
+                            modifier = Modifier
+                                .size(100.dp)
+                                .clickable { dialogLauncher.launch("image/*") }
+                        ) {
+                            if (tempAvatarUri != null) {
+                                AsyncImage(
+                                    model = tempAvatarUri,
+                                    contentDescription = "Ảnh đại diện",
+                                    modifier = Modifier.fillMaxSize()
+                                )
+                            } else {
+                                Image(
+                                    painter = painterResource(id = R.drawable.ic_avatar_placeholder),
+                                    contentDescription = "Ảnh đại diện mặc định",
+                                    modifier = Modifier.fillMaxSize()
                                 )
                             }
-                            Spacer(modifier = Modifier.height(6.dp))
-                            Text(
-                                text = "Tính BMI",
-                                style = MaterialTheme.typography.titleMedium,
-                                modifier = Modifier.fillMaxWidth(),
-                                textAlign = TextAlign.Center
-                            )
                         }
                     }
-                }
-            }
-
-        Button(
-            onClick = {
-                // Xử lý lưu dữ liệu tại đây, rồi điều hướng
-                navController.navigate("water") // Điều hướng sang màn hình khác sau khi lưu
-            },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Lưu thông tin")
-
-        }
-    }
-
-    if (showEditDialog) {
-        var tempUsername by remember(user) { mutableStateOf(username) }
-        var tempAvatarUri by remember(user) { mutableStateOf(avatarUri) }
-        val context = LocalContext.current
-
-        val dialogLauncher = rememberLauncherForActivityResult(
-            contract = ActivityResultContracts.GetContent()
-        ) { uri: Uri? ->
-            if (uri != null) {
-                coroutineScope.launch {
-                    // Lưu avatar vào bộ nhớ trong
-                    val path = copyUriToInternalStorage(context, uri, "avatar_${System.currentTimeMillis()}.jpg")
-                    if (path != null) {
-                        tempAvatarUri = Uri.fromFile(File(path)) // Cập nhật tempAvatarUri với đường dẫn mới
+                },
+                confirmButton = {
+                    TextButton(onClick = {
+                        username = tempUsername
+                        avatarUri = tempAvatarUri
+                        showEditDialog = false
+                        userViewModel.updateProfile(
+                            nickname = tempUsername,
+                            avatarUriString = tempAvatarUri?.toString()
+                        )
+                    }) {
+                        Text("Lưu")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showEditDialog = false }) {
+                        Text("Hủy")
                     }
                 }
-            }
+            )
         }
-
-        AlertDialog(
-            onDismissRequest = { showEditDialog = false },
-            title = { Text("Chỉnh sửa hồ sơ") },
-            text = {
-                Column {
-                    OutlinedTextField(
-                        value = tempUsername,
-                        onValueChange = { tempUsername = it },
-                        label = { Text("Tên người dùng") },
-                        singleLine = true
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Text("Chọn ảnh đại diện:")
-                    Box(
-                        modifier = Modifier
-                            .size(100.dp)
-                            .clickable { dialogLauncher.launch("image/*") }
-                    ) {
-                        if (tempAvatarUri != null) {
-                            AsyncImage(
-                                model = tempAvatarUri,
-                                contentDescription = "Ảnh đại diện",
-                                modifier = Modifier.fillMaxSize()
-                            )
-                        } else {
-                            Image(
-                                painter = painterResource(id = R.drawable.ic_avatar_placeholder),
-                                contentDescription = "Ảnh đại diện mặc định",
-                                modifier = Modifier.fillMaxSize()
-                            )
-                        }
-                    }
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = {
-                    // Cập nhật local state và đóng dialog
-                    username = tempUsername
-                    avatarUri = tempAvatarUri
-                    showEditDialog = false
-
-                    // Cập nhật vào ViewModel và lưu vào database
-                    userViewModel.updateProfile(
-                        nickname = tempUsername,
-                        avatarUriString = tempAvatarUri?.toString() // Lưu đường dẫn file vào DB
-                    )
-                }) {
-                    Text("Lưu")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showEditDialog = false }) {
-                    Text("Hủy")
-                }
-            }
-        )
     }
 }
 
-
-
-
 @Composable
-fun InfoSavedScreen() {
+fun InfoSavedScreen(
+    onBack: () -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
     ) {
         Text(
             text = "Thông tin đã được lưu!",
@@ -386,11 +411,10 @@ fun InfoSavedScreen() {
         )
 
         Button(
-            onClick = { /* Điều hướng trở lại hoặc ra ngoài */ },
+            onClick = onBack,
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("Quay lại")
         }
     }
 }
-
