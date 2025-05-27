@@ -7,16 +7,30 @@ import androidx.room.RoomDatabase
 import com.example.fitness.dao.CaloriesRecordDao
 import com.example.fitness.dao.ExerciseDao
 
+import com.example.fitness.dao.UserDao
+import com.example.fitness.entity.Exercise
+import com.example.fitness.entity.User
+
+import com.example.fitness.dao.NutritionDetailDao
+
+
+
 import com.example.fitness.dao.NutritionDetailDao
 import com.example.fitness.dao.UserDao
 import com.example.fitness.dao.WaterIntakeDao
 import com.example.fitness.entity.CaloriesRecordEntity
 import com.example.fitness.entity.Exercise
+
 import com.example.fitness.entity.NutritionDetail
+
 import com.example.fitness.entity.User
 import com.example.fitness.entity.WaterIntakeRecordEntity
 
 @Database(entities = [User::class, Exercise::class, NutritionDetail::class, CaloriesRecordEntity::class,WaterIntakeRecordEntity::class], version = 5)
+
+
+
+
 
 
 
@@ -31,8 +45,7 @@ abstract class AppDatabase : RoomDatabase() {
 
 
     companion object {
-        @Volatile
-        private var INSTANCE: AppDatabase? = null
+        @Volatile private var INSTANCE: AppDatabase? = null
 
         fun getDatabase(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
