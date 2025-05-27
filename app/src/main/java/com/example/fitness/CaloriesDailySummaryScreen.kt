@@ -1,5 +1,10 @@
+package com.example.fitness
+
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -8,7 +13,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
@@ -42,138 +50,234 @@ fun CaloriesDailySummaryScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF0288D1))  // Nền xanh dương fitness
-            .padding(16.dp),
+            .background(
+                Brush.linearGradient(
+                    colors = listOf(
+                        Color(0xFF0288D1), // Blue
+                        Color(0xFF4FC3F7) // Lighter blue
+                    )
+                )
+            )
+            .padding(20.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
             "Thống kê calo trong ngày",
-            fontSize = 27.sp,
+            fontSize = 30.sp,
             fontWeight = FontWeight.ExtraBold,
-            color = Color.Black, // Màu đen cho chữ
-            modifier = Modifier.padding(bottom = 24.dp)
+            color = Color.Black,
+            modifier = Modifier.padding(bottom = 28.dp)
         )
 
-
         Surface(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(20.dp),
-            color = Color.White  // Nền trong trắng
+            modifier = Modifier
+                .fillMaxWidth()
+                .shadow(12.dp, RoundedCornerShape(24.dp))
+                .clip(RoundedCornerShape(24.dp)),
+            color = Color.White
         ) {
             Column(
-                modifier = Modifier.padding(24.dp),
+                modifier = Modifier.padding(28.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                SimplePieChart(totalCalories = totalCalories)
+                EnhancedPieChart(totalCalories = totalCalories)
 
-                Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(36.dp))
 
                 Text(
-                    "Tổng calories tiêu hao hôm nay: %.2f kcal".format(totalCalories),
-                    fontSize = 22.sp,
+                    "Tổng calo tiêu hao hôm nay: %.2f kcal".format(totalCalories),
+                    fontSize = 24.sp,
                     fontWeight = FontWeight.SemiBold,
-                    color = Color(0xFFFB8C00), // Cam đậm nhẹ nhàng
-                    modifier = Modifier.padding(bottom = 24.dp),
+                    color = Color(0xFFFB8C00),
+                    modifier = Modifier.padding(bottom = 28.dp),
                     textAlign = TextAlign.Center,
-                    lineHeight = 28.sp
+                    lineHeight = 30.sp
                 )
 
                 if (todayRecords.isEmpty()) {
                     Text(
                         "Không có dữ liệu hôm nay",
-                        fontSize = 18.sp,
-                        color = Color.Gray,
+                        fontSize = 20.sp,
+                        color = Color.DarkGray,
                         textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(vertical = 20.dp)
+                        modifier = Modifier.padding(vertical = 24.dp)
                     )
                 } else {
                     LazyColumn(
                         modifier = Modifier.fillMaxWidth(),
-                        verticalArrangement = Arrangement.spacedBy(14.dp)
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
                         items(todayRecords, key = { it.id }) { record ->
                             Card(
-                                modifier = Modifier.fillMaxWidth(),
-                                shape = RoundedCornerShape(16.dp),
-                                colors = CardDefaults.cardColors(containerColor = Color(0xFFBBDEFB)) // Nền xanh nhạt cho từng card
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .scale(animateFloatAsState(
+                                        targetValue = 1f,
+                                        animationSpec = tween(300),
+                                        label = "cardScale"
+                                    ).value)
+                                    .shadow(8.dp, RoundedCornerShape(18.dp))
+                                    .clip(RoundedCornerShape(18.dp)),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = Color.Transparent
+                                )
                             ) {
-                                Row(
-                                    modifier = Modifier.padding(20.dp),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .background(
+                                            Brush.linearGradient(
+                                                colors = listOf(
+                                                    Color(0xFFBBDEFB),
+                                                    Color(0xFF90CAF9)
+                                                )
+                                            )
+                                        )
+                                        .padding(20.dp)
                                 ) {
-                                    Text(
-                                        "Calo: %.2f kcal".format(record.caloriesBurned),
-                                        fontSize = 18.sp,
-                                        fontWeight = FontWeight.Medium,
-                                        color = Color(0xFF0288D1) // Màu xanh dương cho calo
-                                    )
-                                    Text(
-                                        sdf.format(Date(record.timestamp)),
-                                        fontSize = 14.sp,
-                                        color = Color(0xFF0288D1) // Màu xanh dương cho thời gian
-                                    )
+                                    Row(
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text(
+                                            "Calo: %.2f kcal".format(record.caloriesBurned),
+                                            fontSize = 20.sp,
+                                            fontWeight = FontWeight.Medium,
+                                            color = Color(0xFF0288D1)
+                                        )
+                                        Text(
+                                            sdf.format(Date(record.timestamp)),
+                                            fontSize = 16.sp,
+                                            color = Color(0xFF0288D1)
+                                        )
+                                    }
                                 }
                             }
                         }
                     }
                 }
 
-                Spacer(Modifier.height(32.dp))
+                Spacer(Modifier.height(36.dp))
 
                 Button(
                     onClick = onBack,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(56.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0288D1)), // Nền xanh dương
+                        .height(60.dp)
+                        .scale(animateFloatAsState(
+                            targetValue = 1f,
+                            animationSpec = tween(300),
+                            label = "buttonScale"
+                        ).value)
+                        .shadow(8.dp, RoundedCornerShape(16.dp)),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.Transparent
+                    ),
                     shape = RoundedCornerShape(16.dp)
                 ) {
-                    Text(
-                        "Quay lại",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
-                    )
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(
+                                Brush.linearGradient(
+                                    colors = listOf(
+                                        Color(0xFF0288D1),
+                                        Color(0xFF4FC3F7)
+                                    )
+                                )
+                            )
+                    ) {
+                        Text(
+                            "Quay lại",
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White,
+                            modifier = Modifier.align(Alignment.Center)
+                        )
+                    }
                 }
             }
         }
     }
 }
+
 @Composable
-fun SimplePieChart(
+fun EnhancedPieChart(
     totalCalories: Float,
     goalCalories: Float = 500f,
     modifier: Modifier = Modifier
 ) {
-    val sweepAngle = (totalCalories / goalCalories).coerceIn(0f, 1f) * 360f
-    val orangeColor = Color(0xFFFFA726)  // Màu cam
+    val progress = (totalCalories / goalCalories).coerceIn(0f, 1f)
+    val sweepAngle = progress * 360f
+    val animatedProgress by animateFloatAsState(
+        targetValue = progress,
+        animationSpec = tween(durationMillis = 1200),
+        label = "chartProgress"
+    )
+    val animatedSweepAngle = animatedProgress * 360f
 
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Canvas(modifier = Modifier.size(160.dp)) {
-            val strokeWidth = 32f
-            drawArc(
-                color = Color(0xFFE0E0E0), // Nền phần chưa đạt màu xám nhạt cho nổi bật trên nền trắng
-                startAngle = 0f,
-                sweepAngle = 360f,
-                useCenter = false,
-                style = Stroke(width = strokeWidth)
-            )
-            drawArc(
-                color = orangeColor, // Phần calo đã đạt màu cam
-                startAngle = -90f,
-                sweepAngle = sweepAngle,
-                useCenter = false,
-                style = Stroke(width = strokeWidth)
+        Box(
+            modifier = Modifier
+                .size(180.dp)
+                .shadow(10.dp, RoundedCornerShape(50))
+                .background(
+                    Brush.radialGradient(
+                        colors = listOf(
+                            Color.White,
+                            Color(0xFFE6F0FA) // Light blue
+                        )
+                    ),
+                    RoundedCornerShape(50)
+                )
+                .border(4.dp, Color(0xFF0288D1), RoundedCornerShape(50)),
+            contentAlignment = Alignment.Center
+        ) {
+            Canvas(
+                modifier = Modifier.size(160.dp)
+            ) {
+                // Background arc
+                drawArc(
+                    color = Color(0xFFE0E0E0),
+                    startAngle = -90f,
+                    sweepAngle = 360f,
+                    useCenter = false,
+                    style = Stroke(width = 28f)
+                )
+                // Progress arc with gradient
+                drawArc(
+                    brush = Brush.linearGradient(
+                        colors = listOf(
+                            Color(0xFFFFA726), // Orange
+                            Color(0xFFFFD54F) // Yellow
+                        )
+                    ),
+                    startAngle = -90f,
+                    sweepAngle = animatedSweepAngle,
+                    useCenter = false,
+                    style = Stroke(width = 28f)
+                )
+                // Center circle
+                drawCircle(
+                    color = Color.White,
+                    radius = size.minDimension / 4
+                )
+            }
+            Text(
+                text = "${(animatedProgress * 100).toInt()}%",
+                fontSize = 24.sp,
+                fontWeight = FontWeight.ExtraBold,
+                color = Color(0xFF0288D1),
+                modifier = Modifier.align(Alignment.Center)
             )
         }
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(16.dp))
         Text(
             text = "%.0f / %.0f kcal".format(totalCalories.coerceAtMost(goalCalories), goalCalories),
-            fontSize = 20.sp,
+            fontSize = 22.sp,
             color = Color.Black,
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center,
@@ -181,5 +285,3 @@ fun SimplePieChart(
         )
     }
 }
-
-

@@ -1,7 +1,7 @@
 package com.example.fitness.ui.theme
 
 import BmiScreen
-import CaloriesDailySummaryScreen
+
 import CaloriesScreen
 import CaloriesScreenWithViewModel
 

@@ -32,13 +32,13 @@ fun LoginScreen(navController: NavHostController, userViewModel: UserViewModel) 
     val context = LocalContext.current
 
     Image(
-        painter = painterResource(id = R.drawable.back1), // đổi thành tên file ảnh trong res/drawable
+        painter = painterResource(id = R.drawable.back1), // Ensure the image is correct
         contentDescription = null,
         modifier = Modifier.fillMaxSize(),
         contentScale = ContentScale.Crop
     )
 
-    // UI cấu trúc
+    // UI structure
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -49,40 +49,59 @@ fun LoginScreen(navController: NavHostController, userViewModel: UserViewModel) 
         Text(
             text = "Đăng nhập",
             style = MaterialTheme.typography.headlineMedium,
-            color = Color.Black,  // đổi màu chữ thành đen
+            color = Color.Black,
+            fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(bottom = 16.dp)
         )
 
-        // Trường nhập tên đăng nhập
+        // Username input field
         OutlinedTextField(
             value = username,
             onValueChange = { username = it },
-            label = { Text("Tên đăng nhập") },
+            label = {
+                Text(
+                    text = "Tên đăng nhập",
+                    color = Color.Black,  // Label color in black
+                    fontWeight = FontWeight.Bold,  // Bold font for the label
+                    fontSize = 16.sp  // Increased font size for better visibility
+                )
+            },
+            textStyle = LocalTextStyle.current.copy(color = Color.Black, fontWeight = FontWeight.Bold),
             modifier = Modifier
                 .fillMaxWidth()
-                .shadow(6.dp, RoundedCornerShape(12.dp))
-                .background(Color.White.copy(alpha = 0.9f), RoundedCornerShape(12.dp))
-                .border(2.dp, Color(0xFF1565C0), RoundedCornerShape(12.dp))
+                .shadow(8.dp, RoundedCornerShape(16.dp))
+                .background(Color.White.copy(alpha = 0.9f), RoundedCornerShape(16.dp))
+                .border(2.dp, Color(0xFF0288D1), RoundedCornerShape(16.dp))
+                .padding(10.dp)
         )
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Trường nhập mật khẩu
+        // Password input field
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
-            label = { Text("Mật khẩu") },
+            label = {
+                Text(
+                    text = "Mật khẩu",
+                    color = Color.Black,  // Label color in black
+                    fontWeight = FontWeight.Bold,  // Bold font for the label
+                    fontSize = 16.sp  // Increased font size for better visibility
+                )
+            },
             visualTransformation = PasswordVisualTransformation(),
+            textStyle = LocalTextStyle.current.copy(color = Color.Black, fontWeight = FontWeight.Bold),
             modifier = Modifier
                 .fillMaxWidth()
-                .shadow(6.dp, RoundedCornerShape(12.dp))
-                .background(Color.White.copy(alpha = 0.9f), RoundedCornerShape(12.dp))
-                .border(2.dp, Color(0xFF1565C0), RoundedCornerShape(12.dp))
+                .shadow(8.dp, RoundedCornerShape(16.dp))
+                .background(Color.White.copy(alpha = 0.9f), RoundedCornerShape(16.dp))
+                .border(2.dp, Color(0xFF0288D1), RoundedCornerShape(16.dp))
+                .padding(10.dp)
         )
 
-        Spacer(modifier = Modifier.height(10.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
-        // Nút Đăng nhập
+        // Login button
         Button(
             onClick = {
                 isLoginEnabled = false
@@ -91,27 +110,33 @@ fun LoginScreen(navController: NavHostController, userViewModel: UserViewModel) 
                     if (user != null) {
                         userViewModel.loadUserByUsername(user.username)
                         Toast.makeText(context, "Đăng nhập thành công", Toast.LENGTH_SHORT).show()
-                        navController.navigate("gioithieu") // Điều hướng tới màn hình chính
+                        navController.navigate("gioithieu") // Navigate to the main screen
                     } else {
                         Toast.makeText(context, "Sai tên đăng nhập hoặc mật khẩu", Toast.LENGTH_SHORT).show()
                         isLoginEnabled = true
                     }
                 }
             },
-            modifier = Modifier.fillMaxWidth(),
-            enabled = isLoginEnabled
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 10.dp),
+            enabled = isLoginEnabled,
+            shape = RoundedCornerShape(16.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0288D1))
         ) {
-            Text("Đăng nhập")
+            Text("Đăng nhập", color = Color.White, fontWeight = FontWeight.Bold)
         }
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        // Liên kết tới màn hình Đăng ký
+        // Link to registration screen
         TextButton(onClick = { navController.navigate("register") }) {
             Text(
                 text = "Chưa có tài khoản? Đăng ký ngay!",
-                color = Color.Black
+                color = Color(0xFF0288D1),
+                fontWeight = FontWeight.Bold
             )
         }
     }
 }
+

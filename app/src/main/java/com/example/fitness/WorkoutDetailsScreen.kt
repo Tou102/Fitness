@@ -33,6 +33,7 @@ import androidx.compose.runtime.LaunchedEffect
 
 
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -65,8 +66,12 @@ fun WorkoutDetailScreen(
         ) {
             Text(
                 text = "Bài tập: $workoutType",
-                style = MaterialTheme.typography.headlineMedium
+                style = MaterialTheme.typography.headlineMedium,
+                modifier = Modifier
+                    .fillMaxWidth() // Đảm bảo rằng văn bản chiếm toàn bộ chiều rộng
+                    .align(Alignment.CenterHorizontally) // Căn giữa theo chiều ngang
             )
+
             Spacer(modifier = Modifier.height(12.dp))
             Text(
                 text = content,
