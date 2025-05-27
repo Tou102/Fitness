@@ -18,7 +18,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import com.example.fitness.utils.copyUriToInternalStorage
-
+import androidx.compose.material.icons.filled.Menu
 
 
 
@@ -55,6 +55,7 @@ fun ProfileScreen(
     // Local state để hiển thị profile, khởi tạo mặc định và update khi user thay đổi
     var username by rememberSaveable(user) { mutableStateOf("Người dùng") }
     var avatarUri by rememberSaveable(user) { mutableStateOf<Uri?>(null) }
+    var expandedMenu by remember { mutableStateOf(false) }
 
     LaunchedEffect(user) {
         val currentUser = user
@@ -85,7 +86,7 @@ fun ProfileScreen(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(340.dp)
+                .height(360.dp)
                 .clip(RoundedCornerShape(24.dp))
                 .background(
                     brush = Brush.verticalGradient(
@@ -115,8 +116,37 @@ fun ProfileScreen(
                 }
             }
 
+            // Menu icon riêng ở góc trái trên
+            Box(modifier = Modifier.align(Alignment.TopStart)) {
+                IconButton(onClick = { expandedMenu = true }) {
+                    Icon(
+                        imageVector = Icons.Default.Menu,
+                        contentDescription = "Menu",
+                        tint = Color.White
+                    )
+                }
+
+                DropdownMenu(
+                    expanded = expandedMenu,
+                    onDismissRequest = { expandedMenu = false }
+                ) {
+                    DropdownMenuItem(
+                        text = { Text("Đăng xuất") },
+                        onClick = {
+                            expandedMenu = false
+                            userViewModel.logout()
+                            navController.navigate("login") {
+                                popUpTo(0) { inclusive = true }
+                            }
+                        }
+                    )
+                }
+            }
+
             Column(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(top = 40.dp), // đẩy xuống khỏi icon menu
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
@@ -130,6 +160,9 @@ fun ProfileScreen(
                         .padding(bottom = 16.dp),
                     textAlign = TextAlign.Center
                 )
+
+                // ... giữ nguyên phần avatar, tên, BMI button
+
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),

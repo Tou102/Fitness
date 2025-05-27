@@ -22,6 +22,13 @@ class UserViewModel(private val db: AppDatabase) : ViewModel() {
             _user.value = db.userDao().getUserByUsername(username)
         }
     }
+    fun logout() {
+        viewModelScope.launch {
+            // Xoá user (hoặc token, hoặc clear local data...)
+            _user.value = null
+            // Gọi repository.clearUserData() nếu cần
+        }
+    }
 
     fun registerUser(username: String, password: String) {
         viewModelScope.launch {
