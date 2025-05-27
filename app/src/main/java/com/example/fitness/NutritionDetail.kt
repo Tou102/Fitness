@@ -273,7 +273,7 @@ fun NutritionItem(
                 Spacer(modifier = Modifier.height(8.dp))
                 AsyncImage(
                     model = nutritionDetail.imageUri,
-                    contentDescription = null,
+                    contentDescription = "Hình ảnh dinh dưỡng",
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(300.dp)

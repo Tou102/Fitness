@@ -9,11 +9,14 @@ import com.example.fitness.dao.ExerciseDao
 
 import com.example.fitness.dao.NutritionDetailDao
 import com.example.fitness.dao.UserDao
+import com.example.fitness.dao.WaterIntakeDao
+import com.example.fitness.entity.CaloriesRecordEntity
 import com.example.fitness.entity.Exercise
 import com.example.fitness.entity.NutritionDetail
 import com.example.fitness.entity.User
+import com.example.fitness.entity.WaterIntakeRecordEntity
 
-@Database(entities = [User::class, Exercise::class, NutritionDetail::class], version = 3)
+@Database(entities = [User::class, Exercise::class, NutritionDetail::class, CaloriesRecordEntity::class,WaterIntakeRecordEntity::class], version = 5)
 
 
 
@@ -23,6 +26,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun userDao(): UserDao
     abstract fun caloriesRecordDao(): CaloriesRecordDao
     abstract fun waterIntakeDao(): WaterIntakeDao
+    abstract fun NutritionDetailDao():NutritionDetailDao
 
 
 

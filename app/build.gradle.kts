@@ -44,6 +44,7 @@ android {
 dependencies {
 
     implementation(libs.androidx.runtime.livedata)
+    implementation(libs.play.services.location)
     val room_version = "2.6.1"
     implementation ("com.google.accompanist:accompanist-pager:0.31.5-beta")
     implementation ("com.google.accompanist:accompanist-pager-indicators:0.31.5-beta")
@@ -79,6 +80,19 @@ dependencies {
     implementation ("pl.droidsonroids.gif:android-gif-drawable:1.2.29")
     implementation ("com.google.maps.android:maps-compose:2.13.0")
     implementation ("com.google.android.gms:play-services-location:21.0.1")
+
+
+    // CameraX
+    implementation ("androidx.camera:camera-camera2:1.4.2")
+    implementation ("androidx.camera:camera-lifecycle:1.4.2")
+    implementation ("androidx.camera:camera-view:1.3.0")
+
+// ML Kit Pose Detection (Beta)
+    implementation ("com.google.mlkit:pose-detection:18.0.0-beta5")
+    implementation ("com.google.mlkit:pose-detection-accurate:18.0.0-beta5")
+
+    implementation ("com.google.accompanist:accompanist-permissions:0.31.2-alpha")
+
 
     // Room
     implementation ("androidx.room:room-runtime:2.7.1")

@@ -174,8 +174,12 @@ fun ExerciseGroupScreen(
                     editingExercise = it
                     showDialog = true
                 },
-                onDelete = { exerciseViewModel.deleteExercise(it) }
+                onDelete = { exerciseViewModel.deleteExercise(it) },
+                onStartExercise = {
+                    navController.navigate("exercise_camera/${it.id}") // 👈 điều hướng sang camera screen
+                }
             )
+
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -306,7 +310,8 @@ fun GifImage(modifier: Modifier = Modifier, resId: Int) {
 fun ExerciseItem(
     exercise: Exercise,
     onEdit: (Exercise) -> Unit,
-    onDelete: (Exercise) -> Unit
+    onDelete: (Exercise) -> Unit,
+    onStartExercise: (Exercise) -> Unit
 ) {
     Card(
         modifier = Modifier
@@ -344,6 +349,9 @@ fun ExerciseItem(
                 horizontalArrangement = Arrangement.End,
                 modifier = Modifier.fillMaxWidth()
             ) {
+                Button(onClick = { onStartExercise(exercise) }) {
+                    Text("Tập bài này")
+                }
                 Button(onClick = { onEdit(exercise) }) {
                     Text("Sửa")
                 }

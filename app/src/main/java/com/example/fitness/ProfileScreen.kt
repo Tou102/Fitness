@@ -6,6 +6,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.navigation.NavController
+import com.example.fitness.viewModel.UserViewModel
 
 @Composable
 fun ProfileScreen(navController: NavController) {
@@ -62,7 +63,7 @@ fun ProfileScreen(navController: NavController) {
         Button(
             onClick = {
                 // Xử lý lưu dữ liệu tại đây, rồi điều hướng
-                navController.navigate("calo") // Điều hướng sang màn hình khác sau khi lưu
+                navController.navigate("water") // Điều hướng sang màn hình khác sau khi lưu
             },
             modifier = Modifier.fillMaxWidth()
         ) {
