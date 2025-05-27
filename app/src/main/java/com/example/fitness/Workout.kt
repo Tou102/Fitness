@@ -49,6 +49,8 @@ fun WorkoutScreen(navController: NavHostController) {
             }
         }
 
+
+
         Row( // Thêm Row để chứa hai nút
             modifier = Modifier
                 .fillMaxWidth()
@@ -56,10 +58,11 @@ fun WorkoutScreen(navController: NavHostController) {
             horizontalArrangement = Arrangement.SpaceBetween // Để các nút ở hai đầu
         ) {
 
+
                
         }
     }
-}
+
 
 @Composable
 fun WorkoutCard(item: WorkoutItem, navController: NavHostController) {

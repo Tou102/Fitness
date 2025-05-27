@@ -136,41 +136,22 @@ fun LoginScreen(navController: NavHostController, userViewModel: UserViewModel) 
                     )
                 )
 
-                Spacer(modifier = Modifier.height(24.dp))
+        // Nút Đăng nhập
+        Button(
+            onClick = {
+                isLoginEnabled = false
+                userViewModel.viewModelScope.launch {
+                    val user = userViewModel.loginUser(username, password)
+                    if (user != null) {
+                        userViewModel.loadUserByUsername(user.username)
+                        Toast.makeText(context, "Đăng nhập thành công", Toast.LENGTH_SHORT).show()
+                        navController.navigate("gioithieu") // Điều hướng tới màn hình chính
+                    } else {
+                        Toast.makeText(context, "Sai tên đăng nhập hoặc mật khẩu", Toast.LENGTH_SHORT).show()
+                        isLoginEnabled = true
+                    }
+       
 
-                // Login Button - More prominent with gradient
-                Button(
-                    onClick = {
-                        isLoginEnabled = false
-                        userViewModel.viewModelScope.launch {
-                            val user = userViewModel.loginUser(username, password)
-                            if (user != null) {
-                                Toast.makeText(context, "Đăng nhập thành công", Toast.LENGTH_SHORT).show()
-                                navController.navigate("gioithieu") // Navigate to main screen
-                            } else {
-                                Toast.makeText(context, "Sai tên đăng nhập hoặc mật khẩu", Toast.LENGTH_SHORT).show()
-                                isLoginEnabled = true
-                            }
-                        }
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(50.dp)
-                        .shadow(8.dp, RoundedCornerShape(12.dp)),
-                    enabled = isLoginEnabled,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF1976D2), // Vibrant blue
-                        contentColor = Color.White,
-                        disabledContainerColor = Color(0xFFB0BEC5),
-                        disabledContentColor = Color.White
-                    ),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Text(
-                        text = "Đăng nhập",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold
-                    )
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))

@@ -2,11 +2,23 @@
 package com.example.fitness.ui.theme
 
 import BmiScreen
+
+
+//import CaloChiTiet
+//import CholesterolChiTiet
+//import NatriChiTiet
+//import ProteinThapChiTiet
+
+import NutritionDetailViewModel
+import ProfileScreen
+//import WorkoutDetailScreen
+
 import CaloriesDailySummaryScreen
 import CaloriesScreen
 import CaloriesScreenWithViewModel
 import NutritionDetailViewModel
 import ProfileScreen
+
 
 
 import android.content.Context
@@ -49,6 +61,7 @@ import com.example.fitness.viewModel.CaloriesViewModel
 import com.example.fitness.viewModelFactory.CaloriesViewModelFactory
 import com.example.fitness.*
 
+
 import com.example.fitness.ui.screens.FitnessIntroPager
 import com.example.fitness.viewModel.WaterIntakeViewModel
 
@@ -59,6 +72,8 @@ import com.example.fitness.*
 import com.example.fitness.ui.screens.FitnessIntroPager
 import com.example.fitness.viewModel.NutritionDetailViewModel
 import com.example.fitness.viewModelFactory.NutritionDetailViewModelFactory
+
+
 
 
 import com.example.fitness.viewModelFactory.UserViewModelFactory
@@ -109,6 +124,9 @@ fun AppNavigation(
         }
         composable("gioithieu") {
             FitnessIntroPager(navController = navController)
+        }
+        composable("profile") {
+            ProfileScreen(navController = navController, userViewModel = userViewModel)
         }
 
         composable("anlong_detail") { AnLongChiTiet(navController, nutritionDetailViewModel) }
