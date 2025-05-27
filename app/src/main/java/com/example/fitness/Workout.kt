@@ -20,11 +20,11 @@ import androidx.navigation.NavHostController
 fun WorkoutScreen(navController: NavHostController) {
 
     val workoutItems = listOf(
-        WorkoutItem("Tuổi: 18-29", R.drawable.nho, "workoutDetails/18-29"),
-        WorkoutItem("Tuổi: 30-49", R.drawable.nguoi_lon, "workoutDetails/30-49"),
-        WorkoutItem("Tuổi: 50+", R.drawable.download, "workoutDetails/50+"),
-        WorkoutItem("Võ", R.drawable.tapvo, "workoutDetails/vo"),
-        WorkoutItem("Yoga", R.drawable.yoga, "workoutDetails/yoga")
+        WorkoutItem("FULL BODY", R.drawable.nho, "workoutDetails/Fullbody"),
+        WorkoutItem("ABS", R.drawable.nguoi_lon, "workoutDetails/Abs"),
+        WorkoutItem("CHEST", R.drawable.download, "workoutDetails/Chest"),
+        WorkoutItem("ARM", R.drawable.tapvo, "workoutDetails/Arm"),
+
 
     )
 
@@ -49,6 +49,14 @@ fun WorkoutScreen(navController: NavHostController) {
             }
         }
 
+
+
+        Row( // Thêm Row để chứa hai nút
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween // Để các nút ở hai đầu
+        ) {
 
 
                

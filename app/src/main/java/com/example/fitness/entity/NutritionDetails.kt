@@ -6,8 +6,9 @@ import androidx.room.PrimaryKey
 
 @Entity(tableName = "nutrition_details")
 data class NutritionDetail(
-    @PrimaryKey(autoGenerate = true) val id: Long = 0,
-    @ColumnInfo(name = "title") val title: String,
-    @ColumnInfo(name = "description") val description: String,
-    @ColumnInfo(name = "image_uri") val imageUri: String?
+    @PrimaryKey(autoGenerate = true) val id:Int = 0,
+    val title: String,
+    val description: String,
+    val imageUri: String?,
+    val groupName: String,
 )

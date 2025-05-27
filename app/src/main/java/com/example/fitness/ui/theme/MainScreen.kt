@@ -42,7 +42,7 @@ fun BottomNavigationBar(navController: NavController) {
     val items = listOf(
         BottomNavItem.Workout,
         BottomNavItem.Nutrition,
-        BottomNavItem.BieuDo,
+        BottomNavItem.Running,
         BottomNavItem.Profile
     )
 

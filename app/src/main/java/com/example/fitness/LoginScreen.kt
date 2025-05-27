@@ -10,6 +10,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -31,56 +32,109 @@ fun LoginScreen(navController: NavHostController, userViewModel: UserViewModel) 
     var isLoginEnabled by remember { mutableStateOf(true) }
     val context = LocalContext.current
 
+    // Background Image
     Image(
-        painter = painterResource(id = R.drawable.back1), // đổi thành tên file ảnh trong res/drawable
+        painter = painterResource(id = R.drawable.back1), // Ensure this matches your drawable resource
         contentDescription = null,
         modifier = Modifier.fillMaxSize(),
         contentScale = ContentScale.Crop
     )
 
-    // UI cấu trúc
+    // Main UI structure with a semi-transparent card-like container
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
+            .padding(horizontal = 24.dp, vertical = 16.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(
-            text = "Đăng nhập",
-            style = MaterialTheme.typography.headlineMedium,
-            color = Color.Black,  // đổi màu chữ thành đen
-            modifier = Modifier.padding(bottom = 16.dp)
-        )
-
-        // Trường nhập tên đăng nhập
-        OutlinedTextField(
-            value = username,
-            onValueChange = { username = it },
-            label = { Text("Tên đăng nhập") },
+        // Card container for the login form
+        Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .shadow(6.dp, RoundedCornerShape(12.dp))
-                .background(Color.White.copy(alpha = 0.9f), RoundedCornerShape(12.dp))
-                .border(2.dp, Color(0xFF1565C0), RoundedCornerShape(12.dp))
-        )
+                .padding(horizontal = 8.dp)
+                .clip(RoundedCornerShape(16.dp))
+                .shadow(12.dp, RoundedCornerShape(16.dp)),
+            colors = CardDefaults.cardColors(
+                containerColor = Color.White.copy(alpha = 0.95f) // Slightly transparent white
+            )
+        ) {
+            Column(
+                modifier = Modifier
+                    .padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                // Title "Đăng nhập" - Bolder and more prominent
+                Text(
+                    text = "Đăng nhập",
+                    style = MaterialTheme.typography.headlineLarge.copy(
+                        fontWeight = FontWeight.ExtraBold, // Extra bold for emphasis
+                        fontSize = 32.sp // Larger size
+                    ),
+                    color = Color(0xFF0D47A1), // Deep blue for better contrast
+                    modifier = Modifier.padding(bottom = 24.dp)
+                )
 
-        Spacer(modifier = Modifier.height(8.dp))
+                // Username TextField - Enhanced styling
+                OutlinedTextField(
+                    value = username,
+                    onValueChange = { username = it },
+                    label = {
+                        Text(
+                            "Tên đăng nhập",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp, // Larger label
+                            color = Color(0xFF0D47A1) // Matching deep blue
+                        )
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(Color.White, RoundedCornerShape(12.dp))
+                        .border(2.dp, Color(0xFF42A5F5), RoundedCornerShape(12.dp)), // Brighter blue border
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = Color(0xFF42A5F5),
+                        unfocusedBorderColor = Color(0xFF90CAF9),
+                        cursorColor = Color(0xFF0D47A1),
+                        focusedTextColor = Color.Black,
+                        unfocusedTextColor = Color.Black
+                    ),
+                    textStyle = LocalTextStyle.current.copy(
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                )
 
-        // Trường nhập mật khẩu
-        OutlinedTextField(
-            value = password,
-            onValueChange = { password = it },
-            label = { Text("Mật khẩu") },
-            visualTransformation = PasswordVisualTransformation(),
-            modifier = Modifier
-                .fillMaxWidth()
-                .shadow(6.dp, RoundedCornerShape(12.dp))
-                .background(Color.White.copy(alpha = 0.9f), RoundedCornerShape(12.dp))
-                .border(2.dp, Color(0xFF1565C0), RoundedCornerShape(12.dp))
-        )
+                Spacer(modifier = Modifier.height(16.dp))
 
-        Spacer(modifier = Modifier.height(10.dp))
+                // Password TextField - Enhanced styling
+                OutlinedTextField(
+                    value = password,
+                    onValueChange = { password = it },
+                    label = {
+                        Text(
+                            "Mật khẩu",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp,
+                            color = Color(0xFF0D47A1)
+                        )
+                    },
+                    visualTransformation = PasswordVisualTransformation(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(Color.White, RoundedCornerShape(12.dp))
+                        .border(2.dp, Color(0xFF42A5F5), RoundedCornerShape(12.dp)),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = Color(0xFF42A5F5),
+                        unfocusedBorderColor = Color(0xFF90CAF9),
+                        cursorColor = Color(0xFF0D47A1),
+                        focusedTextColor = Color.Black,
+                        unfocusedTextColor = Color.Black
+                    ),
+                    textStyle = LocalTextStyle.current.copy(
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                )
 
         // Nút Đăng nhập
         Button(
@@ -96,22 +150,22 @@ fun LoginScreen(navController: NavHostController, userViewModel: UserViewModel) 
                         Toast.makeText(context, "Sai tên đăng nhập hoặc mật khẩu", Toast.LENGTH_SHORT).show()
                         isLoginEnabled = true
                     }
+       
+
                 }
-            },
-            modifier = Modifier.fillMaxWidth(),
-            enabled = isLoginEnabled
-        ) {
-            Text("Đăng nhập")
-        }
 
-        Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
-        // Liên kết tới màn hình Đăng ký
-        TextButton(onClick = { navController.navigate("register") }) {
-            Text(
-                text = "Chưa có tài khoản? Đăng ký ngay!",
-                color = Color.Black
-            )
+                // Register Link - Styled for better visibility
+                TextButton(onClick = { navController.navigate("register") }) {
+                    Text(
+                        text = "Chưa có tài khoản? Đăng ký ngay!",
+                        color = Color(0xFF1976D2), // Vibrant blue to match button
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+            }
         }
     }
 }

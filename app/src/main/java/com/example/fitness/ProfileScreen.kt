@@ -25,6 +25,7 @@ import androidx.compose.material.icons.filled.Menu
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -34,6 +35,11 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.platform.LocalContext
 import java.io.File
 import java.io.FileOutputStream
+
+
+import androidx.compose.ui.unit.dp
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
 
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
@@ -164,6 +170,7 @@ fun ProfileScreen(
                 // ... giữ nguyên phần avatar, tên, BMI button
 
 
+
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
@@ -266,6 +273,16 @@ fun ProfileScreen(
                     }
                 }
             }
+
+        Button(
+            onClick = {
+                // Xử lý lưu dữ liệu tại đây, rồi điều hướng
+                navController.navigate("calo") // Điều hướng sang màn hình khác sau khi lưu
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Lưu thông tin")
+
         }
     }
 
@@ -347,4 +364,29 @@ fun ProfileScreen(
     }
 }
 
+
+
+
+@Composable
+fun InfoSavedScreen() {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = "Thông tin đã được lưu!",
+            style = MaterialTheme.typography.headlineSmall,
+            modifier = Modifier.padding(bottom = 24.dp)
+        )
+
+        Button(
+            onClick = { /* Điều hướng trở lại hoặc ra ngoài */ },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Quay lại")
+        }
+    }
+}
 
