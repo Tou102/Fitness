@@ -26,7 +26,7 @@ fun WorkoutScreen(navController: NavHostController) {
         WorkoutItem("ARM", R.drawable.tapvo, "workoutDetails/Arm"),
 
 
-    )
+        )
 
     Column(
         modifier = Modifier
@@ -49,8 +49,6 @@ fun WorkoutScreen(navController: NavHostController) {
             }
         }
 
-
-
         Row( // Thêm Row để chứa hai nút
             modifier = Modifier
                 .fillMaxWidth()
@@ -59,10 +57,9 @@ fun WorkoutScreen(navController: NavHostController) {
         ) {
 
 
-               
         }
     }
-
+}
 
 @Composable
 fun WorkoutCard(item: WorkoutItem, navController: NavHostController) {
@@ -100,4 +97,3 @@ fun WorkoutCard(item: WorkoutItem, navController: NavHostController) {
 }
 
 data class WorkoutItem(val title: String, val imageResId: Int, val route: String)
-
