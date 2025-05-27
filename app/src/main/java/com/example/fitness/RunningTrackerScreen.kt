@@ -2,13 +2,18 @@ package com.example.fitness
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.content.Context
+import android.content.Intent
 import android.location.Location
+import android.location.LocationManager
+import android.os.Looper
+import android.util.Log
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -30,9 +35,28 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Stop
-import androidx.lifecycle.viewmodel.compose.viewModel
+import android.provider.Settings
+import androidx.compose.foundation.shape.RoundedCornerShape
 import com.example.fitness.entity.CaloriesRecordEntity
 import com.example.fitness.viewModel.CaloriesViewModel
+import kotlinx.coroutines.launch
+
+// Move getInitialLocation outside the composable
+fun getInitialLocation(client: FusedLocationProviderClient, callback: (Location?) -> Unit) {
+    try {
+        client.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, null)
+            .addOnSuccessListener { location ->
+                callback(location)
+            }
+            .addOnFailureListener { e ->
+                Log.e("RunningTracker", "Failed to get initial location: ${e.message}")
+                callback(null)
+            }
+    } catch (e: SecurityException) {
+        Log.e("RunningTracker", "Security exception: ${e.message}")
+        callback(null)
+    }
+}
 
 @SuppressLint("MissingPermission")
 @Composable
@@ -47,21 +71,55 @@ fun RunningTrackerScreen(
     var previousLocation by remember { mutableStateOf<Location?>(null) }
     var runningTime by remember { mutableStateOf(0L) }
     var showStopDialog by remember { mutableStateOf(false) }
+    var gpsEnabled by remember { mutableStateOf(false) }
+    var showGpsDialog by remember { mutableStateOf(false) }
 
     val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
     val pathPoints = remember { mutableStateListOf<LatLng>() }
     var currentLatLng by remember { mutableStateOf<LatLng?>(null) }
+    val coroutineScope = rememberCoroutineScope()
+
+    // Define locationManager
+    val locationManager = remember { context.getSystemService(Context.LOCATION_SERVICE) as LocationManager }
 
     val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
         if (!granted) {
-            // Có thể thông báo người dùng nếu cần
+            Toast.makeText(context, "Quyền truy cập vị trí bị từ chối. Vui lòng cấp quyền để sử dụng tính năng này.", Toast.LENGTH_LONG).show()
+        } else {
+            // Check GPS and get initial location after permission is granted
+            gpsEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
+            if (!gpsEnabled) {
+                showGpsDialog = true
+            } else {
+                coroutineScope.launch {
+                    getInitialLocation(fusedLocationClient) { location ->
+                        if (location != null) {
+                            currentLatLng = LatLng(location.latitude, location.longitude)
+                            Log.d("RunningTracker", "Initial location: ${location.latitude}, ${location.longitude}, accuracy: ${location.accuracy}")
+                        }
+                    }
+                }
+            }
         }
     }
 
+    // Check GPS and permissions on start
     LaunchedEffect(Unit) {
+        gpsEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
+        if (!gpsEnabled) {
+            showGpsDialog = true
+        }
         if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION)
             != android.content.pm.PackageManager.PERMISSION_GRANTED) {
             permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+        } else if (gpsEnabled) {
+            // Get initial location on start
+            getInitialLocation(fusedLocationClient) { location ->
+                if (location != null) {
+                    currentLatLng = LatLng(location.latitude, location.longitude)
+                    Log.d("RunningTracker", "Initial location on start: ${location.latitude}, ${location.longitude}, accuracy: ${location.accuracy}")
+                }
+            }
         }
     }
 
@@ -81,8 +139,8 @@ fun RunningTrackerScreen(
             distance = distance,
             runningTime = runningTime
         )
-        caloriesViewModel.addRecord(record)  // Lưu vào DB qua ViewModel
-        onNavigateToSave()  // Điều hướng màn khác
+        caloriesViewModel.addRecord(record)
+        onNavigateToSave()
     }
 
     val locationCallback = remember {
@@ -91,15 +149,43 @@ fun RunningTrackerScreen(
                 if (!isRunning) return
                 val location = locationResult.lastLocation ?: return
 
+                // Log for debugging
+                Log.d("RunningTracker", "Location received: ${location.latitude}, ${location.longitude}, accuracy: ${location.accuracy}")
+
+                // Accept locations with accuracy under 20m
+                if (location.accuracy > 20f) {
+                    Log.d("RunningTracker", "Location accuracy too low: ${location.accuracy}")
+                    return
+                }
+
+                // Update location
                 val newLatLng = LatLng(location.latitude, location.longitude)
                 currentLatLng = newLatLng
+                pathPoints.add(newLatLng)
 
-                previousLocation?.let {
-                    distance += it.distanceTo(location)
-                    speed = location.speed * 3.6f
+                // Use GPS speed if available
+                val gpsSpeed = if (location.hasSpeed()) {
+                    location.speed * 3.6f // Convert m/s to km/h
+                } else {
+                    0f
+                }
+
+                // Minimum speed threshold to consider as stationary
+                val minSpeedThreshold = 0.5f // km/h
+                if (gpsSpeed < minSpeedThreshold && previousLocation != null) {
+                    speed = 0f // Set speed to 0 if below threshold
+                    return // Skip distance update when stationary
+                }
+
+                // Update distance if moved
+                previousLocation?.let { prevLocation ->
+                    val distanceChange = prevLocation.distanceTo(location)
+                    if (distanceChange > 5f) { // 5m threshold for sensitivity
+                        distance += distanceChange
+                        speed = (speed * 0.4f + gpsSpeed * 0.6f) // Smooth speed
+                    }
                 }
                 previousLocation = location
-                pathPoints.add(newLatLng)
             }
         }
     }
@@ -110,6 +196,10 @@ fun RunningTrackerScreen(
             permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
             return
         }
+        if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+            showGpsDialog = true
+            return
+        }
         if (runningTime == 0L) {
             distance = 0f
             previousLocation = null
@@ -117,10 +207,10 @@ fun RunningTrackerScreen(
         }
         isRunning = true
 
-        val locationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 2000)
-            .setMinUpdateIntervalMillis(1000)
+        val locationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 1000)
+            .setMinUpdateIntervalMillis(500)
             .build()
-        fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, null)
+        fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper())
     }
 
     fun stopLocationUpdates() {
@@ -136,6 +226,7 @@ fun RunningTrackerScreen(
 
     LaunchedEffect(currentLatLng) {
         currentLatLng?.let {
+            Log.d("RunningTracker", "Updating camera to: $it")
             cameraPositionState.animate(CameraUpdateFactory.newLatLngZoom(it, 16f))
         }
     }
@@ -187,7 +278,7 @@ fun RunningTrackerScreen(
 
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
             InfoBox("Time", formatTime(runningTime))
-            InfoBox("Calo", "%.2f kcal".format(caloriesBurned))
+            InfoBox ("Calo", "%.2f kcal".format(caloriesBurned))
         }
 
         Spacer(Modifier.height(24.dp))
@@ -273,6 +364,27 @@ fun RunningTrackerScreen(
                 dismissButton = {
                     Button(onClick = { showStopDialog = false }) {
                         Text("Không")
+                    }
+                }
+            )
+        }
+
+        if (showGpsDialog) {
+            AlertDialog(
+                onDismissRequest = { showGpsDialog = false },
+                title = { Text("Bật GPS") },
+                text = { Text("GPS chưa được bật. Vui lòng bật GPS để theo dõi vị trí.") },
+                confirmButton = {
+                    Button(onClick = {
+                        context.startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
+                        showGpsDialog = false
+                    }) {
+                        Text("Mở cài đặt")
+                    }
+                },
+                dismissButton = {
+                    Button(onClick = { showGpsDialog = false }) {
+                        Text("Hủy")
                     }
                 }
             )
