@@ -1,6 +1,7 @@
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -12,57 +13,51 @@ import androidx.compose.material3.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Calculate
-import androidx.compose.foundation.Canvas
 import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.LocalDrink
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import com.example.fitness.utils.copyUriToInternalStorage
 import androidx.compose.material.icons.filled.Menu
-
-
-
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.dp
-import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import java.io.File
-import java.io.FileOutputStream
-
-
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.runtime.saveable.rememberSaveable
-
-
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.fitness.R
+import com.example.fitness.utils.copyUriToInternalStorage
 import com.example.fitness.viewModel.UserViewModel
+import com.example.fitness.viewModel.WorkoutViewModel
 import kotlinx.coroutines.launch
-
+import java.io.File
 
 @Composable
 fun ProfileScreen(
     navController: NavController,
-    userViewModel: UserViewModel
+    userViewModel: UserViewModel,
+    workoutViewModel: WorkoutViewModel,
+    userId: Int
 ) {
     var showEditDialog by remember { mutableStateOf(false) }
     val user by userViewModel.user.collectAsState()
-
     val coroutineScope = rememberCoroutineScope()
 
     var username by rememberSaveable(user) { mutableStateOf("Người dùng") }
     var avatarUri by rememberSaveable(user) { mutableStateOf<Uri?>(null) }
     var expandedMenu by remember { mutableStateOf(false) }
-    var infoSavedVisible by remember { mutableStateOf(false) } // trạng thái hiển thị màn thông báo
+    var infoSavedVisible by remember { mutableStateOf(false) }
 
     LaunchedEffect(user) {
         val currentUser = user
@@ -75,10 +70,17 @@ fun ProfileScreen(
         }
     }
 
-    val launcher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri: Uri? ->
-        if (uri != null) avatarUri = uri
+    LaunchedEffect(userId) {
+        workoutViewModel.loadWeeklySessions(userId)
+    }
+
+    val weeklySessions by workoutViewModel.weeklySessions.collectAsState(initial = emptyList())
+
+    val weeklySchedule = remember(weeklySessions) {
+        val days = listOf("T2", "T3", "T4", "T5", "T6", "T7", "CN")
+        days.mapIndexed { index, day ->
+            day to weeklySessions.any { it.day == (index + 1) && it.completed }
+        }.toMap()
     }
 
     if (infoSavedVisible) {
@@ -97,15 +99,18 @@ fun ProfileScreen(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(360.dp)
                 .clip(RoundedCornerShape(24.dp))
                 .background(
                     brush = Brush.verticalGradient(
-                        colors = listOf(Color(0xFF4A90E2), Color(0xFF82B1FF))
+                        colors = listOf(
+                            Color(0xFF4A90E2),
+                            Color(0xFF82B1FF)
+                        )
                     )
                 )
+                .shadow(16.dp, RoundedCornerShape(24.dp))
                 .border(2.dp, Color(0xFF2A6EDB), RoundedCornerShape(24.dp))
-                .padding(16.dp)
+                .padding(24.dp)
         ) {
             Canvas(modifier = Modifier.fillMaxSize()) {
                 val width = size.width
@@ -121,7 +126,7 @@ fun ProfileScreen(
                 points.forEach { point ->
                     drawCircle(
                         color = Color.White.copy(alpha = 0.15f),
-                        radius = 10f,
+                        radius = 12f,
                         center = point
                     )
                 }
@@ -155,22 +160,11 @@ fun ProfileScreen(
 
             Column(
                 modifier = Modifier
-                    .fillMaxSize()
+                    .fillMaxWidth()
                     .padding(top = 40.dp),
-                verticalArrangement = Arrangement.SpaceBetween
+                verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
-                Text(
-                    text = "Thông tin cá nhân",
-                    style = MaterialTheme.typography.headlineLarge.copy(
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold
-                    ),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 16.dp),
-                    textAlign = TextAlign.Center
-                )
-
+                // Thông tin cá nhân + avatar
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
@@ -178,7 +172,7 @@ fun ProfileScreen(
                 ) {
                     Box(
                         modifier = Modifier
-                            .size(90.dp)
+                            .size(100.dp)
                             .clickable { showEditDialog = true }
                     ) {
                         if (avatarUri != null) {
@@ -186,7 +180,7 @@ fun ProfileScreen(
                                 model = avatarUri,
                                 contentDescription = "Avatar",
                                 modifier = Modifier
-                                    .size(90.dp)
+                                    .size(100.dp)
                                     .clip(CircleShape)
                                     .align(Alignment.Center)
                             )
@@ -195,7 +189,7 @@ fun ProfileScreen(
                                 painter = painterResource(id = R.drawable.ic_avatar_placeholder),
                                 contentDescription = "Avatar mặc định",
                                 modifier = Modifier
-                                    .size(90.dp)
+                                    .size(100.dp)
                                     .clip(CircleShape)
                                     .align(Alignment.Center)
                             )
@@ -203,7 +197,7 @@ fun ProfileScreen(
                         IconButton(
                             onClick = { showEditDialog = true },
                             modifier = Modifier
-                                .size(20.dp)
+                                .size(24.dp)
                                 .align(Alignment.TopEnd)
                                 .background(Color.White.copy(alpha = 0.1f), CircleShape)
                         ) {
@@ -211,7 +205,7 @@ fun ProfileScreen(
                                 imageVector = Icons.Default.Edit,
                                 contentDescription = "Chỉnh sửa avatar",
                                 tint = Color.Black,
-                                modifier = Modifier.size(20.dp)
+                                modifier = Modifier.size(24.dp)
                             )
                         }
                     }
@@ -220,12 +214,14 @@ fun ProfileScreen(
 
                     Text(
                         text = "Hello, $username",
-                        style = MaterialTheme.typography.titleLarge.copy(color = Color.White)
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            color = Color.White,
+                            fontSize = 24.sp
+                        )
                     )
                 }
 
-                Spacer(modifier = Modifier.height(32.dp))
-
+                // 3 nút BMI, Nước, Calo
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceEvenly,
@@ -237,22 +233,25 @@ fun ProfileScreen(
                         Button(
                             onClick = { navController.navigate("bmi") },
                             modifier = Modifier
-                                .size(60.dp)
-                                .clip(RoundedCornerShape(12.dp)),
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF3A8DFF)),
+                                .size(70.dp)
+                                .clip(RoundedCornerShape(16.dp)),
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1A56DB)),
                             contentPadding = PaddingValues(0.dp)
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Calculate,
                                 contentDescription = "Tính BMI",
                                 tint = Color.White,
-                                modifier = Modifier.size(32.dp)
+                                modifier = Modifier.size(36.dp)
                             )
                         }
-                        Spacer(modifier = Modifier.height(6.dp))
+                        Spacer(modifier = Modifier.height(8.dp))
                         Text(
                             text = "Tính BMI",
-                            style = MaterialTheme.typography.titleMedium,
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontSize = 16.sp,
+                                color = Color.White
+                            ),
                             textAlign = TextAlign.Center
                         )
                     }
@@ -263,22 +262,25 @@ fun ProfileScreen(
                         Button(
                             onClick = { navController.navigate("water") },
                             modifier = Modifier
-                                .size(60.dp)
-                                .clip(RoundedCornerShape(12.dp)),
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF3A8DFF)),
+                                .size(70.dp)
+                                .clip(RoundedCornerShape(16.dp)),
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1A56DB)),
                             contentPadding = PaddingValues(0.dp)
                         ) {
                             Icon(
                                 imageVector = Icons.Default.LocalDrink,
                                 contentDescription = "Nước",
                                 tint = Color.White,
-                                modifier = Modifier.size(32.dp)
+                                modifier = Modifier.size(36.dp)
                             )
                         }
-                        Spacer(modifier = Modifier.height(6.dp))
+                        Spacer(modifier = Modifier.height(8.dp))
                         Text(
                             text = "Nước",
-                            style = MaterialTheme.typography.titleMedium,
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontSize = 16.sp,
+                                color = Color.White
+                            ),
                             textAlign = TextAlign.Center
                         )
                     }
@@ -289,28 +291,37 @@ fun ProfileScreen(
                         Button(
                             onClick = { navController.navigate("calories_daily_summary") },
                             modifier = Modifier
-                                .size(60.dp)
-                                .clip(RoundedCornerShape(12.dp)),
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF3A8DFF)),
+                                .size(70.dp)
+                                .clip(RoundedCornerShape(16.dp)),
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1A56DB)),
                             contentPadding = PaddingValues(0.dp)
                         ) {
                             Icon(
                                 imageVector = Icons.Default.FitnessCenter,
                                 contentDescription = "Calo",
                                 tint = Color.White,
-                                modifier = Modifier.size(32.dp)
+                                modifier = Modifier.size(36.dp)
                             )
                         }
-                        Spacer(modifier = Modifier.height(6.dp))
+                        Spacer(modifier = Modifier.height(8.dp))
                         Text(
                             text = "Calo",
-                            style = MaterialTheme.typography.titleMedium,
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontSize = 16.sp,
+                                color = Color.White
+                            ),
                             textAlign = TextAlign.Center
                         )
                     }
                 }
 
-
+                // Lịch tập luyện tuần
+                WeeklyWorkoutSchedule(
+                    weeklySchedule = weeklySchedule,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 16.dp)
+                )
             }
         }
 
@@ -392,6 +403,79 @@ fun ProfileScreen(
         }
     }
 }
+@Composable
+fun WeeklyWorkoutSchedule(
+    weeklySchedule: Map<String, Boolean>, // key: ngày ("T2", "T3", ...), value: đã tập hay chưa
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(vertical = 16.dp)
+            .height(180.dp),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFF4A90E2)
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 12.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)
+        ) {
+            Text(
+                text = "Lịch tập luyện tuần này",
+                style = MaterialTheme.typography.titleLarge.copy(
+                    fontWeight = FontWeight.ExtraBold,
+                    color = Color.White
+                ),
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+
+            Row(
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                val days = listOf("T2", "T3", "T4", "T5", "T6", "T7", "CN")
+
+                days.forEach { day ->
+                    val isWorkout = weeklySchedule[day] ?: false
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.padding(horizontal = 4.dp)
+                    ) {
+                        Text(
+                            day,
+                            style = MaterialTheme.typography.bodyMedium.copy(color = Color.White)
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        Box(
+                            modifier = Modifier
+                                .size(28.dp)
+                                .background(
+                                    color = if (isWorkout) Color(0xFF2ECC71) else Color.White.copy(alpha = 0.3f),
+                                    shape = CircleShape
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            if (isWorkout) {
+                                Icon(
+                                    imageVector = Icons.Default.FitnessCenter,
+                                    contentDescription = "Đã tập",
+                                    tint = Color.White,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 
 @Composable
 fun InfoSavedScreen(

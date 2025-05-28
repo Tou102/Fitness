@@ -1,15 +1,27 @@
+package com.example.fitness
+
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 
 @Composable
@@ -31,75 +43,118 @@ fun BmiScreen(navController: NavController) {
     val ageRanges = listOf("<18", "18-25", "26-35", "36-50", ">50")
     val goals = listOf("Tăng cân", "Giảm cân", "Giảm mỡ", "Giữ vóc dáng")
 
-    fun calculateBmi(weight: Double, height: Double): Double {
-        return weight / (height * height)
+    fun calculateBmi(weight: Double, height: Double): Double = weight / (height * height)
+
+    fun getBmiStatus(bmi: Double): String = when {
+        bmi < 18.5 -> "Gầy"
+        bmi < 24.9 -> "Bình thường"
+        bmi < 29.9 -> "Thừa cân"
+        else -> "Béo phì"
     }
 
-    fun getBmiStatus(bmi: Double): String {
-        return when {
-            bmi < 18.5 -> "Gầy"
-            bmi < 24.9 -> "Bình thường"
-            bmi < 29.9 -> "Thừa cân"
-            else -> "Béo phì"
-        }
-    }
-
-    // Dùng LazyColumn để cuộn được khi form dài
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xF31E9FE5))  // Nền xanh dương đậm hơn
+            .background(
+                Brush.verticalGradient(
+                    colors = listOf(
+                        Color(0xFFD0E8FF), // Xanh dương nhạt
+                        Color(0xFFFFFFFF)  // Trắng nhẹ
+                    )
+                )
+            )
             .padding(24.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        // Tiêu đề
         item {
             Text(
                 "Thông tin cơ bản",
-                style = MaterialTheme.typography.headlineSmall,
-                color = Color.White,
-                fontWeight = FontWeight.Bold
+                style = MaterialTheme.typography.headlineMedium.copy(fontSize = 32.sp),
+                color = Color(0xFF0D47A1),
+                fontWeight = FontWeight.ExtraBold,
+                modifier = Modifier
+                    .padding(bottom = 12.dp)
+                    .shadow(6.dp, RoundedCornerShape(12.dp))
             )
         }
 
+        // Dropdown độ tuổi
         item {
             DropdownMenuBox(
                 label = "Độ tuổi",
                 selected = ageRange,
                 options = ageRanges,
                 onSelectedChange = { ageRange = it },
-                textColor = Color.White
+                textColor = Color(0xFF0D47A1)
             )
         }
 
+        // Giới tính
         item {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("Giới tính:", color = Color.White, fontWeight = FontWeight.Bold)
-                Spacer(modifier = Modifier.width(16.dp))
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Text(
+                    "Giới tính:",
+                    color = Color(0xFF0D47A1),
+                    fontWeight = FontWeight.ExtraBold,
+                    fontSize = 18.sp
+                )
                 genders.forEach { gender ->
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .background(
+                                Color(0xFF4CAF50).copy(alpha = 0.1f),
+                                RoundedCornerShape(12.dp)
+                            )
+                            .padding(8.dp)
+                    ) {
                         RadioButton(
                             selected = selectedGender == gender,
                             onClick = { selectedGender = gender },
-                            colors = RadioButtonDefaults.colors(selectedColor = Color.Green)
+                            colors = RadioButtonDefaults.colors(
+                                selectedColor = Color(0xFF388E3C),
+                                unselectedColor = Color.Black
+                            )
                         )
-                        Text(gender, color = Color.White, fontWeight = FontWeight.Bold)
-                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            gender,
+                            color = Color(0xFF0D47A1),
+                            fontWeight = FontWeight.ExtraBold,
+                            fontSize = 16.sp
+                        )
                     }
                 }
             }
         }
 
+        // Cân nặng
         item {
             OutlinedTextField(
                 value = weightInput,
-                onValueChange = { if (it.isEmpty() || it.matches(Regex("^\\d*\\.?\\d*\$"))) weightInput = it },
-                label = { Text("Cân nặng (kg)", color = Color.White, fontWeight = FontWeight.Bold) },
+                onValueChange = {
+                    if (it.isEmpty() || it.matches(Regex("^\\d*\\.?\\d*\$"))) weightInput = it
+                },
+                label = { Text("Cân nặng (kg)", color = Color(0xFF0D47A1), fontWeight = FontWeight.ExtraBold) },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier.fillMaxWidth(),
-                textStyle = LocalTextStyle.current.copy(color = Color.White, fontWeight = FontWeight.Bold)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .shadow(6.dp, RoundedCornerShape(12.dp))
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Color.White.copy(alpha = 0.95f)),
+                textStyle = LocalTextStyle.current.copy(
+                    color = Color(0xFF0D47A1),
+                    fontWeight = FontWeight.ExtraBold,
+                    fontSize = 18.sp
+                )
             )
         }
 
+        // Chiều cao
         item {
             OutlinedTextField(
                 value = heightInput,
@@ -108,36 +163,53 @@ fun BmiScreen(navController: NavController) {
                     if (it.isEmpty() || it.matches(Regex("^\\d*\\.?\\d*\$"))) heightInput = it
                 },
                 isError = heightError,
-                label = { Text("Chiều cao (m)", color = Color.White, fontWeight = FontWeight.Bold) },
+                label = { Text("Chiều cao (m)", color = Color(0xFF0D47A1), fontWeight = FontWeight.ExtraBold) },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier.fillMaxWidth(),
-                textStyle = LocalTextStyle.current.copy(color = Color.White, fontWeight = FontWeight.Bold)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .shadow(6.dp, RoundedCornerShape(12.dp))
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Color.White.copy(alpha = 0.95f)),
+                textStyle = LocalTextStyle.current.copy(
+                    color = Color(0xFF0D47A1),
+                    fontWeight = FontWeight.ExtraBold,
+                    fontSize = 18.sp
+                )
             )
             if (heightError) {
-                Text("Chiều cao không hợp lệ (nên dưới 2.5m)", color = Color.Red, fontWeight = FontWeight.Bold)
+                Text(
+                    "Chiều cao không hợp lệ (nên dưới 2.5m)",
+                    color = Color.Red,
+                    fontWeight = FontWeight.ExtraBold,
+                    fontSize = 14.sp,
+                    modifier = Modifier.padding(top = 8.dp)
+                )
             }
         }
 
+        // Mục tiêu luyện tập
         item {
             DropdownMenuBox(
                 label = "Mục tiêu luyện tập",
                 selected = trainingGoal,
                 options = goals,
                 onSelectedChange = { trainingGoal = it },
-                textColor = Color.White
+                textColor = Color(0xFF0D47A1)
             )
         }
 
+        // Cường độ luyện tập
         item {
             DropdownMenuBox(
                 label = "Cường độ luyện tập",
                 selected = exerciseLevel,
                 options = exerciseLevels,
                 onSelectedChange = { exerciseLevel = it },
-                textColor = Color.White
+                textColor = Color(0xFF0D47A1)
             )
         }
 
+        // Nút tính BMI
         item {
             Button(
                 onClick = {
@@ -154,50 +226,103 @@ fun BmiScreen(navController: NavController) {
                         showResultDialog = false
                     }
                 },
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF43A047)) // xanh lá đậm
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp)
+                    .shadow(8.dp, RoundedCornerShape(16.dp))
+                    .clip(RoundedCornerShape(16.dp)),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1976D2), contentColor = Color.White)
             ) {
-                Text("Tính BMI", color = Color.White, fontWeight = FontWeight.Bold)
+                Text("Tính BMI", fontWeight = FontWeight.ExtraBold, fontSize = 20.sp)
             }
         }
 
-        item {
-            Spacer(modifier = Modifier.height(100.dp)) // Tạo khoảng cách đáy để dễ cuộn
-        }
+        // Nút bắt đầu theo dõi (nếu cần)
+
 
         item {
-            Button(
-                onClick = {
-                    if (weightInput.isNotEmpty() && heightInput.isNotEmpty()) {
-                        navController.navigate("workout?goal=$trainingGoal")
-                    }
-                },
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1976D2)) // xanh dương đậm
-            ) {
-                Text("Bắt đầu theo dõi", color = Color.White, fontWeight = FontWeight.Bold)
-            }
+            Spacer(modifier = Modifier.height(100.dp))
         }
     }
 
-    // Dialog hiện kết quả BMI
     if (showResultDialog && bmiResult != null) {
+        val scale by animateFloatAsState(
+            targetValue = if (showResultDialog) 1f else 0f,
+            animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy)
+        )
+
         AlertDialog(
             onDismissRequest = { showResultDialog = false },
-            title = { Text("Kết quả BMI", fontWeight = FontWeight.Bold) },
+            modifier = Modifier
+                .scale(scale)
+                .background(Color.White, RoundedCornerShape(24.dp)),
+            title = {
+                Text(
+                    "Kết quả BMI",
+                    fontWeight = FontWeight.ExtraBold,
+                    fontSize = 24.sp,
+                    color = Color(0xFF0D47A1),
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
+                )
+            },
             text = {
-                Column {
-                    Text("BMI: ${String.format("%.2f", bmiResult)}", fontWeight = FontWeight.Bold)
-                    Text("Phân loại: $bmiStatus", fontWeight = FontWeight.Bold)
-                    Text("Giới tính: $selectedGender", fontWeight = FontWeight.Bold)
-                    Text("Độ tuổi: $ageRange", fontWeight = FontWeight.Bold)
-                    Text("Mục tiêu: $trainingGoal", fontWeight = FontWeight.Bold)
-                    Text("Cường độ luyện tập: $exerciseLevel", fontWeight = FontWeight.Bold)
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    horizontalAlignment = Alignment.Start
+                ) {
+                    Text(
+                        "BMI: ${String.format("%.2f", bmiResult)}",
+                        fontWeight = FontWeight.ExtraBold,
+                        fontSize = 20.sp,
+                        color = Color(0xFF0D47A1),
+                        modifier = Modifier
+                            .background(Color(0xFFD0E8FF), RoundedCornerShape(12.dp))
+                            .padding(horizontal = 12.dp, vertical = 8.dp)
+                    )
+                    Text(
+                        "Phân loại: $bmiStatus",
+                        fontWeight = FontWeight.ExtraBold,
+                        fontSize = 20.sp,
+                        color = Color(0xFF0D47A1)
+                    )
+                    Text(
+                        "Giới tính: $selectedGender",
+                        fontWeight = FontWeight.ExtraBold,
+                        fontSize = 20.sp,
+                        color = Color(0xFF0D47A1)
+                    )
+                    Text(
+                        "Độ tuổi: $ageRange",
+                        fontWeight = FontWeight.ExtraBold,
+                        fontSize = 20.sp,
+                        color = Color(0xFF0D47A1)
+                    )
+                    Text(
+                        "Mục tiêu: $trainingGoal",
+                        fontWeight = FontWeight.ExtraBold,
+                        fontSize = 20.sp,
+                        color = Color(0xFF0D47A1)
+                    )
+                    Text(
+                        "Cường độ luyện tập: $exerciseLevel",
+                        fontWeight = FontWeight.ExtraBold,
+                        fontSize = 20.sp,
+                        color = Color(0xFF0D47A1)
+                    )
                 }
             },
             confirmButton = {
-                TextButton(onClick = { showResultDialog = false }) {
-                    Text("Đóng")
+                TextButton(
+                    onClick = { showResultDialog = false },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        "Đóng",
+                        color = Color(0xFF0D47A1),
+                        fontWeight = FontWeight.ExtraBold,
+                        fontSize = 16.sp
+                    )
                 }
             }
         )
@@ -220,39 +345,66 @@ fun DropdownMenuBox(
         onExpandedChange = { expanded = !expanded },
         modifier = Modifier
             .fillMaxWidth()
-            .height(72.dp) // Tăng chiều cao dropdown box
+            .height(76.dp)
+            .shadow(6.dp, RoundedCornerShape(12.dp))
     ) {
         OutlinedTextField(
             value = selected,
             onValueChange = {},
             readOnly = true,
-            label = { Text(label, color = textColor, fontWeight = FontWeight.Bold) },
+            label = { Text(label, color = textColor, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp) },
             singleLine = true,
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
             modifier = Modifier
                 .menuAnchor()
                 .fillMaxWidth()
+                .clip(RoundedCornerShape(12.dp))
+                .background(Color.White.copy(alpha = 0.95f)),
+            textStyle = LocalTextStyle.current.copy(
+                color = textColor,
+                fontWeight = FontWeight.ExtraBold,
+                fontSize = 18.sp
+            ),
+            colors = TextFieldDefaults.colors(
+                focusedContainerColor = Color.Transparent,
+                unfocusedContainerColor = Color.Transparent,
+                focusedIndicatorColor = Color(0xFF0D47A1),
+                unfocusedIndicatorColor = Color(0xFF1976D2),
+                focusedLabelColor = Color(0xFF0D47A1),
+                unfocusedLabelColor = Color(0xFF1976D2)
+            )
         )
 
         ExposedDropdownMenu(
             expanded = expanded,
-            onDismissRequest = { expanded = false }
+            onDismissRequest = { expanded = false },
+            modifier = Modifier
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            Color(0xFFD0E8FF),
+                            Color(0xFFFFFFFF)
+                        )
+                    )
+                )
         ) {
             options.forEach { selectionOption ->
                 DropdownMenuItem(
                     text = {
                         Text(
                             selectionOption,
-                            fontSize = MaterialTheme.typography.bodyMedium.fontSize,
-                            color = textColor,
-                            fontWeight = FontWeight.Bold
+                            fontSize = 18.sp,
+                            color = Color(0xFF0D47A1),
+                            fontWeight = FontWeight.ExtraBold
                         )
                     },
                     onClick = {
                         onSelectedChange(selectionOption)
                         expanded = false
                     },
-                    modifier = Modifier.height(56.dp) // Tăng chiều cao của item trong dropdown
+                    modifier = Modifier
+                        .height(60.dp)
+                        .fillMaxWidth()
                 )
             }
         }
