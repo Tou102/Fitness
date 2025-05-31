@@ -16,17 +16,15 @@ class UserViewModel(private val db: AppDatabase) : ViewModel() {
     private val _user = MutableStateFlow<User?>(null)
     val user: StateFlow<User?> = _user
 
-//     Chỉ giữ hàm này vì dùng username để load user
     fun loadUserByUsername(username: String) {
         viewModelScope.launch {
             _user.value = db.userDao().getUserByUsername(username)
         }
     }
+
     fun logout() {
         viewModelScope.launch {
-            // Xoá user (hoặc token, hoặc clear local data...)
             _user.value = null
-            // Gọi repository.clearUserData() nếu cần
         }
     }
 
@@ -43,29 +41,18 @@ class UserViewModel(private val db: AppDatabase) : ViewModel() {
             val updatedUser = currentUser.copy(nickname = nickname, avatarUriString = avatarUriString)
             db.userDao().update(updatedUser)
 
-            // Load lại user mới nhất từ DB để cập nhật UI
             val refreshedUser = db.userDao().getUserByUsername(currentUser.username)
             _user.value = refreshedUser
         }
     }
 
-
     suspend fun loginUser(username: String, password: String): User? {
         return db.userDao().getUser(username, password)
     }
 
-//    fun updateUser(name: String, email: String, phone: String, dob: String) {
-//        viewModelScope.launch {
-//            val currentUser = _user.value ?: return@launch
-//            val updatedUser = currentUser.copy(
-//                name = name,
-//                email = email,
-//                phone = phone,
-//                dob = dob
-//            )
-//            db.userDao().update(updatedUser)
-//            _user.value = updatedUser
-//        }
-//    }
+    // Thêm hàm kiểm tra quyền admin
+    fun isAdmin(): Boolean {
+        return _user.value?.role == "admin"
+    }
 }
 

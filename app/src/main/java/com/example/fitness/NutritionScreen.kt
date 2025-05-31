@@ -20,33 +20,35 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import com.example.fitness.viewModel.UserViewModel
 import kotlinx.coroutines.delay
 
 @Composable
-fun NutritionScreen(navController: NavHostController) {
-    // Trạng thái để kích hoạt hoạt ảnh khi màn hình xuất hiện
+fun NutritionScreen(
+    navController: NavHostController,
+    userViewModel: UserViewModel
+) {
     var isVisible by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
-        delay(100) // Trì hoãn nhẹ để tạo hiệu ứng mượt mà
+        delay(100)
         isVisible = true
     }
+
+    val user by userViewModel.user.collectAsState()
+    val isAdmin = user?.role == "admin"
 
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(
                 brush = androidx.compose.ui.graphics.Brush.verticalGradient(
-                    colors = listOf(
-                        Color(0xFF2196F3), // Xanh dương đậm
-                        Color(0xFF42A5F5) // Xanh dương nhạt hơn ở dưới
-                    )
+                    colors = listOf(Color(0xFF2196F3), Color(0xFF42A5F5))
                 )
             )
             .padding(horizontal = 16.dp, vertical = 24.dp)
@@ -55,7 +57,6 @@ fun NutritionScreen(navController: NavHostController) {
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Tiêu đề với hiệu ứng
             AnimatedVisibility(
                 visible = isVisible,
                 enter = fadeIn(animationSpec = tween(800)),
@@ -83,7 +84,12 @@ fun NutritionScreen(navController: NavHostController) {
                 contentPadding = PaddingValues(bottom = 16.dp)
             ) {
                 items(nutritionItems) { item ->
-                    NutritionCard(item = item, navController = navController, isVisible = isVisible)
+                    NutritionCard(
+                        item = item,
+                        navController = navController,
+                        isVisible = isVisible,
+                        isAdmin = isAdmin
+                    )
                 }
             }
         }
@@ -91,8 +97,12 @@ fun NutritionScreen(navController: NavHostController) {
 }
 
 @Composable
-fun NutritionCard(item: NutritionItem, navController: NavHostController, isVisible: Boolean) {
-    // Trạng thái để tạo hiệu ứng phóng to khi nhấn
+fun NutritionCard(
+    item: NutritionItem,
+    navController: NavHostController,
+    isVisible: Boolean,
+    isAdmin: Boolean
+) {
     var isPressed by remember { mutableStateOf(false) }
     val scale by animateFloatAsState(
         targetValue = if (isPressed) 0.95f else 1f,
@@ -131,15 +141,12 @@ fun NutritionCard(item: NutritionItem, navController: NavHostController, isVisib
             elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
         ) {
             Box {
-                // Hình nền bài tập
                 Image(
                     painter = painterResource(id = item.imageResId),
                     contentDescription = item.title,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxSize()
                 )
-
-                // Lớp phủ gradient để làm nổi bật tiêu đề
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -152,8 +159,6 @@ fun NutritionCard(item: NutritionItem, navController: NavHostController, isVisib
                             )
                         )
                 )
-
-                // Tiêu đề bài tập
                 Text(
                     text = item.title,
                     color = Color.White,
@@ -170,9 +175,6 @@ fun NutritionCard(item: NutritionItem, navController: NavHostController, isVisib
                         .align(Alignment.BottomStart)
                         .padding(16.dp)
                 )
-
-                // Icon nhỏ ở góc phải trên
-
             }
         }
     }

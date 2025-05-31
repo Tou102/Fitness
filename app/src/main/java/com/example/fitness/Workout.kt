@@ -2,15 +2,12 @@ package com.example.fitness
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -21,18 +18,16 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavHostController
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
 import com.example.fitness.dao.WorkoutSessionDao
 import com.example.fitness.db.AppDatabase
+import com.example.fitness.entity.WorkoutSession
 import com.example.fitness.viewModel.WorkoutViewModel
 import kotlinx.coroutines.launch
 
@@ -40,8 +35,8 @@ import kotlinx.coroutines.launch
 
 class WorkoutViewModelFactory(
     private val workoutDao: WorkoutSessionDao
-) : ViewModelProvider.Factory {
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+) : androidx.lifecycle.ViewModelProvider.Factory {
+    override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(WorkoutViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
             return WorkoutViewModel(workoutDao) as T
@@ -55,7 +50,8 @@ class WorkoutViewModelFactory(
 @Composable
 fun WorkoutScreenRoute(
     navController: NavHostController,
-    userId: Int
+    userId: Int,
+    isAdmin: Boolean
 ) {
     val context = LocalContext.current
     val db = AppDatabase.getDatabase(context)
@@ -66,7 +62,8 @@ fun WorkoutScreenRoute(
     WorkoutScreen(
         navController = navController,
         workoutViewModel = workoutViewModel,
-        userId = userId
+        userId = userId,
+        isAdmin = isAdmin
     )
 }
 
@@ -76,12 +73,12 @@ fun WorkoutScreenRoute(
 fun WorkoutScreen(
     navController: NavHostController,
     workoutViewModel: WorkoutViewModel,
-    userId: Int
+    userId: Int,
+    isAdmin: Boolean
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
 
-    // Load lịch tập khi mở màn hình
     LaunchedEffect(userId) {
         workoutViewModel.loadWeeklySessions(userId)
     }
@@ -89,17 +86,17 @@ fun WorkoutScreen(
     val weeklySessions by workoutViewModel.weeklySessions.collectAsState(initial = emptyList())
 
     val workoutItems = listOf(
-        WorkoutItem("FULL BODY", R.drawable.fullbody, "workoutDetails/Fullbody"),
-        WorkoutItem("ABS", R.drawable.abs, "workoutDetails/Abs"),
-        WorkoutItem("CHEST", R.drawable.chest, "workoutDetails/Chest"),
-        WorkoutItem("ARM", R.drawable.arm, "workoutDetails/Arm"),
+        WorkoutItem("FULLBODY", R.drawable.fullbody, "workoutDetails/FULLBODY"),
+        WorkoutItem("ABS", R.drawable.abs, "workoutDetails/ABS"),
+        WorkoutItem("CHEST", R.drawable.chest, "workoutDetails/CHEST"),
+        WorkoutItem("ARM", R.drawable.arm, "workoutDetails/ARM"),
     )
 
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(
-                brush = Brush.verticalGradient(
+                Brush.verticalGradient(
                     colors = listOf(Color(0xFF2196F3), Color(0xFF42A5F5))
                 )
             )
@@ -111,6 +108,7 @@ fun WorkoutScreen(
             workoutViewModel = workoutViewModel,
             userId = userId,
             weeklySessions = weeklySessions,
+            isAdmin = isAdmin,
             onShowSnackbar = { message ->
                 coroutineScope.launch {
                     snackbarHostState.showSnackbar(message)
@@ -132,7 +130,8 @@ fun WorkoutListContent(
     workoutItems: List<WorkoutItem>,
     workoutViewModel: WorkoutViewModel,
     userId: Int,
-    weeklySessions: List<com.example.fitness.entity.WorkoutSession>,
+    weeklySessions: List<WorkoutSession>,
+    isAdmin: Boolean,
     onShowSnackbar: (String) -> Unit
 ) {
     Column(
@@ -172,6 +171,7 @@ fun WorkoutListContent(
                     navController = navController,
                     isVisible = true,
                     isCheckedIn = isCheckedIn,
+                    isAdmin = isAdmin,
                     onCheckIn = {
                         workoutViewModel.checkInWorkout(userId, currentDay, item.title)
                         onShowSnackbar("Đã check-in bài tập ${item.title}!")
@@ -180,7 +180,6 @@ fun WorkoutListContent(
             }
 
         }
-
     }
 }
 
@@ -192,6 +191,7 @@ fun WorkoutCard(
     navController: NavHostController,
     isVisible: Boolean,
     isCheckedIn: Boolean,
+    isAdmin: Boolean,
     onCheckIn: () -> Unit
 ) {
     var isPressed by remember { mutableStateOf(false) }
@@ -203,14 +203,14 @@ fun WorkoutCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .height(220.dp) // tăng chiều cao để đủ chỗ cho nút
+            .height(220.dp)
             .scale(scale)
             .shadow(8.dp, RoundedCornerShape(16.dp))
             .clip(RoundedCornerShape(16.dp))
             .clickable(
                 onClick = {
                     isPressed = true
-                    navController.navigate(item.route)
+                    navController.navigate(item.route + "?isAdmin=$isAdmin")
                 },
                 onClickLabel = "Select ${item.title}"
             )
@@ -219,7 +219,7 @@ fun WorkoutCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Box {
-            Image(
+            androidx.compose.foundation.Image(
                 painter = painterResource(id = item.imageResId),
                 contentDescription = item.title,
                 contentScale = ContentScale.Crop,
@@ -281,3 +281,95 @@ fun WorkoutCard(
 // --- Data class bài tập ---
 
 data class WorkoutItem(val title: String, val imageResId: Int, val route: String)
+
+// --- Các màn hình chi tiết bài tập ---
+
+@Composable
+fun FullBody(
+    navController: NavHostController,
+    exerciseViewModel: com.example.fitness.viewModel.ExerciseViewModel,
+    isAdmin: Boolean
+) {
+    ExerciseGroupScreen(
+        navController = navController,
+        exerciseViewModel = exerciseViewModel,
+        groupName = "FullBody",
+        title = "Bài tập full body",
+        description = "Bài tập toàn thân phù hợp cho mọi cấp độ, giúp tăng sức mạnh và sự dẻo dai.",
+        benefits = listOf(
+            "Tăng cường sức mạnh cơ bắp toàn diện",
+            "Cải thiện sức bền và khả năng vận động",
+            "Đốt cháy calo hiệu quả",
+            "Hỗ trợ giảm cân và duy trì vóc dáng",
+            "Tăng cường sức khỏe tim mạch",
+            "Phù hợp với mọi trình độ tập luyện"
+        ),
+        isAdmin = isAdmin
+    )
+}
+
+@Composable
+fun Abs(
+    navController: NavHostController,
+    exerciseViewModel: com.example.fitness.viewModel.ExerciseViewModel,
+    isAdmin: Boolean
+) {
+    ExerciseGroupScreen(
+        navController = navController,
+        exerciseViewModel = exerciseViewModel,
+        groupName = "Abs",
+        title = "Bài tập cơ bụng (Abs)",
+        description = "Bài tập giúp tăng cường sức mạnh cơ bụng, hỗ trợ giữ thăng bằng và cải thiện vóc dáng.",
+        benefits = listOf(
+            "Tăng sức mạnh vùng bụng",
+            "Cải thiện tư thế và thăng bằng",
+            "Hỗ trợ giảm mỡ vùng bụng",
+            "Giúp cơ thể săn chắc hơn"
+        ),
+        isAdmin = isAdmin
+    )
+}
+
+@Composable
+fun Chest(
+    navController: NavHostController,
+    exerciseViewModel: com.example.fitness.viewModel.ExerciseViewModel,
+    isAdmin: Boolean
+) {
+    ExerciseGroupScreen(
+        navController = navController,
+        exerciseViewModel = exerciseViewModel,
+        groupName = "Chest",
+        title = "Bài tập ngực (Chest)",
+        description = "Các bài tập tăng cường sức mạnh cơ ngực, giúp phát triển cơ bắp và cải thiện sức mạnh tổng thể.",
+        benefits = listOf(
+            "Tăng cường sức mạnh cơ ngực",
+            "Cải thiện tư thế và sức khỏe tổng thể",
+            "Phát triển cơ bắp săn chắc",
+            "Hỗ trợ thực hiện các hoạt động thể chất khác"
+        ),
+        isAdmin = isAdmin
+    )
+}
+
+@Composable
+fun Arm(
+    navController: NavHostController,
+    exerciseViewModel: com.example.fitness.viewModel.ExerciseViewModel,
+    isAdmin: Boolean
+) {
+    ExerciseGroupScreen(
+        navController = navController,
+        exerciseViewModel = exerciseViewModel,
+        groupName = "Arm",
+        title = "Bài tập tay (Arm)",
+        description = "Các bài tập giúp phát triển cơ tay, tăng sức mạnh và sự săn chắc.",
+        benefits = listOf(
+            "Tăng sức mạnh cơ tay",
+            "Cải thiện sức bền và độ săn chắc",
+            "Hỗ trợ vận động và nâng đỡ",
+            "Giúp phát triển vóc dáng cân đối"
+        ),
+        isAdmin = isAdmin
+    )
+}

@@ -2,47 +2,30 @@ package com.example.fitness
 
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.foundation.layout.*
-
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.material3.MaterialTheme
-import com.example.fitness.viewModel.ExerciseViewModel
-
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.runtime.remember
-
 import androidx.navigation.NavHostController
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import coil.compose.AsyncImage
 import com.example.fitness.entity.Exercise
-
+import com.example.fitness.R
+import com.example.fitness.viewModel.ExerciseViewModel
+import kotlinx.coroutines.launch
 import pl.droidsonroids.gif.GifImageView
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.LaunchedEffect
-
-
-import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
-
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
-import coil.compose.AsyncImage
-import coil.request.ImageRequest
-import com.example.fitness.NutritionItem
-import com.example.fitness.R
-
-
 
 @Composable
 fun WorkoutDetailScreen(
@@ -50,6 +33,7 @@ fun WorkoutDetailScreen(
     workoutType: String?,
     content: String,
     additionalContent: @Composable () -> Unit,
+    isAdmin: Boolean,
     onAdd: () -> Unit = {},
     onEdit: () -> Unit = {},
     onDelete: () -> Unit = {}
@@ -68,8 +52,8 @@ fun WorkoutDetailScreen(
                 text = "Bài tập: $workoutType",
                 style = MaterialTheme.typography.headlineMedium,
                 modifier = Modifier
-                    .fillMaxWidth() // Đảm bảo rằng văn bản chiếm toàn bộ chiều rộng
-                    .align(Alignment.CenterHorizontally) // Căn giữa theo chiều ngang
+                    .fillMaxWidth()
+                    .align(Alignment.CenterHorizontally)
             )
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -92,44 +76,39 @@ fun WorkoutDetailScreen(
                 ) {
                     Text("Quay về")
                 }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Button(
-                    onClick = onAdd,
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text("Thêm")
-                }
-                Spacer(modifier = Modifier.width(8.dp))
-                Button(
-                    onClick = onEdit,
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text("Sửa")
-                }
-                Spacer(modifier = Modifier.width(8.dp))
-                Button(
-                    onClick = onDelete,
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text("Xóa")
+                if (isAdmin) {
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Button(
+                        onClick = onAdd,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text("Thêm")
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Button(
+                        onClick = onEdit,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text("Sửa")
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Button(
+                        onClick = onDelete,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text("Xóa")
+                    }
                 }
             }
         }
     }
 }
 
-
 @Composable
 fun ExerciseGroupScreen(
     navController: NavHostController,
     exerciseViewModel: ExerciseViewModel,
+    isAdmin: Boolean,
     groupName: String,
     title: String,
     description: String,
@@ -175,31 +154,37 @@ fun ExerciseGroupScreen(
         filteredExercises.forEach { exercise ->
             ExerciseItem(
                 exercise = exercise,
+                isAdmin = isAdmin,
                 onEdit = {
-                    editingExercise = it
-                    showDialog = true
+                    if (isAdmin) {
+                        editingExercise = it
+                        showDialog = true
+                    }
                 },
-                onDelete = { exerciseViewModel.deleteExercise(it) },
+                onDelete = {
+                    if (isAdmin) {
+                        exerciseViewModel.deleteExercise(it)
+                    }
+                },
                 onStartExercise = {
-                    navController.navigate("exercise_camera/${it.id}") // 👈 điều hướng sang camera screen
+                    navController.navigate("exercise_camera/${it.id}")
                 }
             )
-
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-
-        Button(
-            onClick = {
-                editingExercise = null
-                showDialog = true
-            },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Thêm bài tập")
+        if (isAdmin) {
+            Button(
+                onClick = {
+                    editingExercise = null
+                    showDialog = true
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Thêm bài tập")
+            }
         }
-
     }
 
     if (showDialog) {
@@ -217,87 +202,59 @@ fun ExerciseGroupScreen(
     }
 }
 
-
 @Composable
-fun FullBody(
-    navController: NavHostController,
-    exerciseViewModel: ExerciseViewModel
+fun ExerciseItem(
+    exercise: Exercise,
+    isAdmin: Boolean,
+    onEdit: (Exercise) -> Unit,
+    onDelete: (Exercise) -> Unit,
+    onStartExercise: (Exercise) -> Unit
 ) {
-    ExerciseGroupScreen(
-        navController = navController,
-        exerciseViewModel = exerciseViewModel,
-        groupName = "FullBody",
-        title = "Bài tập full body",
-        description = "Bài tập toàn thân phù hợp cho mọi cấp độ, giúp tăng sức mạnh và sự dẻo dai.",
-        benefits = listOf(
-            "Tăng cường sức mạnh cơ bắp toàn diện",
-            "Cải thiện sức bền và khả năng vận động",
-            "Đốt cháy calo hiệu quả",
-            "Hỗ trợ giảm cân và duy trì vóc dáng",
-            "Tăng cường sức khỏe tim mạch",
-            "Phù hợp với mọi trình độ tập luyện"
-        )
-    )
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text = exercise.name,
+                style = MaterialTheme.typography.titleMedium
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = exercise.description ?: "",
+                style = MaterialTheme.typography.bodyMedium
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            GifImage(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(120.dp),
+                resId = exercise.gifRes ?: R.drawable.exercise_1
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(
+                horizontalArrangement = Arrangement.End,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Button(onClick = { onStartExercise(exercise) }) {
+                    Text("Tập bài này")
+                }
+                if (isAdmin) {
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Button(onClick = { onEdit(exercise) }) {
+                        Text("Sửa")
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Button(onClick = { onDelete(exercise) }) {
+                        Text("Xóa")
+                    }
+                }
+            }
+        }
+    }
 }
-
-@Composable
-fun Abs(navController: NavHostController, exerciseViewModel: ExerciseViewModel) {
-    ExerciseGroupScreen(
-        navController = navController,
-        exerciseViewModel = exerciseViewModel,
-        groupName = "Abs",
-        title = "Bài tập cơ bụng (Abs)",
-        description = "Bài tập giúp tăng cường sức mạnh cơ bụng, hỗ trợ giữ thăng bằng và cải thiện vóc dáng.",
-        benefits = listOf(
-            "Tăng sức mạnh vùng bụng",
-            "Cải thiện tư thế và thăng bằng",
-            "Hỗ trợ giảm mỡ vùng bụng",
-            "Giúp cơ thể săn chắc hơn"
-        )
-    )
-}
-
-@Composable
-fun Chest(
-    navController: NavHostController,
-    exerciseViewModel: ExerciseViewModel
-) {
-    ExerciseGroupScreen(
-        navController = navController,
-        exerciseViewModel = exerciseViewModel,
-        groupName = "Chest",
-        title = "Bài tập ngực (Chest)",
-        description = "Các bài tập tăng cường sức mạnh cơ ngực, giúp phát triển cơ bắp và cải thiện sức mạnh tổng thể.",
-        benefits = listOf(
-            "Tăng cường sức mạnh cơ ngực",
-            "Cải thiện tư thế và sức khỏe tổng thể",
-            "Phát triển cơ bắp săn chắc",
-            "Hỗ trợ thực hiện các hoạt động thể chất khác"
-        )
-    )
-}
-
-@Composable
-fun Arm(
-    navController: NavHostController,
-    exerciseViewModel: ExerciseViewModel
-) {
-    ExerciseGroupScreen(
-        navController = navController,
-        exerciseViewModel = exerciseViewModel,
-        groupName = "Arm",
-        title = "Bài tập tay (Arm)",
-        description = "Các bài tập giúp phát triển cơ tay, tăng sức mạnh và sự săn chắc.",
-        benefits = listOf(
-            "Tăng sức mạnh cơ tay",
-            "Cải thiện sức bền và độ săn chắc",
-            "Hỗ trợ vận động và nâng đỡ",
-            "Giúp phát triển vóc dáng cân đối"
-        )
-    )
-}
-
-
 
 @Composable
 fun GifImage(modifier: Modifier = Modifier, resId: Int) {
@@ -310,65 +267,6 @@ fun GifImage(modifier: Modifier = Modifier, resId: Int) {
         }
     )
 }
-
-@Composable
-fun ExerciseItem(
-    exercise: Exercise,
-    onEdit: (Exercise) -> Unit,
-    onDelete: (Exercise) -> Unit,
-    onStartExercise: (Exercise) -> Unit
-) {
-    Card(
-        modifier = Modifier
-
-            .fillMaxWidth()
-            .padding(vertical = 4.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp)
-        ) {
-            Text(
-                text = exercise.name,
-                style = MaterialTheme.typography.titleMedium
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = exercise.description ?: "",
-                style = MaterialTheme.typography.bodyMedium
-
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Hiển thị GIF ngay dưới mô tả
-            GifImage(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(120.dp),
-                resId = exercise.gifRes ?: R.drawable.exercise_1
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Row(
-                horizontalArrangement = Arrangement.End,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Button(onClick = { onStartExercise(exercise) }) {
-                    Text("Tập bài này")
-                }
-                Button(onClick = { onEdit(exercise) }) {
-                    Text("Sửa")
-                }
-                Spacer(modifier = Modifier.width(8.dp))
-                Button(onClick = { onDelete(exercise) }) {
-                    Text("Xóa")
-                }
-            }
-        }
-    }
-}
-
 
 @Composable
 fun ExerciseDialog(
@@ -413,10 +311,8 @@ fun ExerciseDialog(
                     label = { Text("Số lần (rep)") },
                     singleLine = true
                 )
-
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(text = "Chọn GIF:")
-
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()

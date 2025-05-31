@@ -2,12 +2,12 @@ package com.example.fitness.ui.theme
 
 import CaloriesScreen
 import ProfileScreen
+import RunningTrackerScreen
 import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -33,10 +33,8 @@ fun AppNavigation(
     context: Context,
     modifier: Modifier = Modifier
 ) {
-    // Database
     val db = AppDatabase.getDatabase(context)
 
-    // ViewModels khởi tạo 1 lần duy nhất bằng remember hoặc viewModel
     val userViewModel: UserViewModel = viewModel(factory = UserViewModelFactory(db))
     val exerciseViewModel: ExerciseViewModel = viewModel(factory = ExerciseViewModelFactory(db))
     val caloriesRepository = com.example.fitness.repository.CaloriesRepository(db.caloriesRecordDao())
@@ -44,9 +42,9 @@ fun AppNavigation(
     val nutritionDetailViewModel: NutritionDetailViewModel = viewModel(factory = NutritionDetailViewModelFactory(db))
     val workoutViewModel: WorkoutViewModel = viewModel(factory = WorkoutViewModelFactory(db.workoutSessionDao()))
 
-    // Lấy userId an toàn, mặc định 0 nếu chưa có user
-    val userId by userViewModel.user.collectAsState(initial = null)
-    val currentUserId = userId?.id ?: 0
+    val userState by userViewModel.user.collectAsState(initial = null)
+    val currentUserId = userState?.id ?: 0
+    val isAdmin = userState?.role == "admin"  // Giả sử User entity có trường role kiểu String
 
     NavHost(
         navController = navController,
@@ -63,16 +61,16 @@ fun AppNavigation(
             BmiScreen(navController = navController)
         }
         composable("workout") {
-            // Truyền workoutViewModel và userId đã lấy
             WorkoutScreen(
                 navController = navController,
                 workoutViewModel = workoutViewModel,
-                userId = currentUserId
+                userId = currentUserId,
+                isAdmin = isAdmin   // thêm tham số phân quyền
             )
-
         }
+
         composable("nutrition") {
-            NutritionScreen(navController = navController)
+            NutritionScreen(navController = navController, userViewModel = userViewModel)
         }
         composable("running") {
             RunningTrackerScreen(
@@ -97,38 +95,68 @@ fun AppNavigation(
             FitnessIntroPager(navController = navController)
         }
         composable("anlong_detail") {
-            AnLongChiTiet(navController, nutritionDetailViewModel)
+            AnLongChiTiet(
+                navController,
+                nutritionDetailViewModel,
+                isAdmin = isAdmin
+            )
         }
         composable("ankieng_detail") {
-            AnKiengChiTiet(navController, nutritionDetailViewModel)
+            AnKiengChiTiet(
+                navController,
+                nutritionDetailViewModel,
+                isAdmin = isAdmin
+            )
         }
         composable("calo_detail") {
-            CaloChiTiet(navController, nutritionDetailViewModel)
+            CaloChiTiet(
+                navController,
+                nutritionDetailViewModel,
+                isAdmin = isAdmin
+            )
         }
         composable("choles_detail") {
-            CholesterolChiTiet(navController, nutritionDetailViewModel)
+            CholesterolChiTiet(
+                navController,
+                nutritionDetailViewModel,
+                isAdmin = isAdmin
+            )
         }
         composable("anchay_detail") {
-            AnChayChiTiet(navController, nutritionDetailViewModel)
+            AnChayChiTiet(
+                navController,
+                nutritionDetailViewModel,
+                isAdmin = isAdmin
+            )
         }
         composable("natri_detail") {
-            NatriChiTiet(navController, nutritionDetailViewModel)
+            NatriChiTiet(
+                navController,
+                nutritionDetailViewModel,
+                isAdmin = isAdmin
+            )
         }
         composable("protein_detail") {
-            ProteinThapChiTiet(navController, nutritionDetailViewModel)
+            ProteinThapChiTiet(
+                navController,
+                nutritionDetailViewModel,
+                isAdmin = isAdmin
+            )
         }
+        // Các route khác giữ nguyên
         composable("workoutDetails/FULLBODY") {
-            FullBody(navController, exerciseViewModel)
+            FullBody(navController, exerciseViewModel, isAdmin)
         }
         composable("workoutDetails/ABS") {
-            Abs(navController, exerciseViewModel)
+            Abs(navController, exerciseViewModel, isAdmin)
         }
         composable("workoutDetails/CHEST") {
-            Chest(navController, exerciseViewModel)
+            Chest(navController, exerciseViewModel, isAdmin)
         }
         composable("workoutDetails/ARM") {
-            Arm(navController, exerciseViewModel)
+            Arm(navController, exerciseViewModel, isAdmin)
         }
+
         composable("water") {
             WaterIntakeScreen(navController = navController, db = db)
         }
