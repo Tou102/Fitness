@@ -21,7 +21,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
@@ -36,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import com.example.fitness.LeaderboardScreen
 import com.example.fitness.R
 import com.example.fitness.utils.copyUriToInternalStorage
 import com.example.fitness.viewModel.UserViewModel
@@ -51,6 +51,7 @@ fun ProfileScreen(
     userId: Int
 ) {
     var showEditDialog by remember { mutableStateOf(false) }
+    var showLeaderboard by remember { mutableStateOf(false) }
     val user by userViewModel.user.collectAsState()
     val coroutineScope = rememberCoroutineScope()
 
@@ -86,6 +87,13 @@ fun ProfileScreen(
     if (infoSavedVisible) {
         InfoSavedScreen(
             onBack = { infoSavedVisible = false }
+        )
+        return
+    }
+
+    if (showLeaderboard) {
+        LeaderboardScreen(
+            onBack = { showLeaderboard = false }
         )
         return
     }
@@ -322,6 +330,24 @@ fun ProfileScreen(
                         .fillMaxWidth()
                         .padding(top = 16.dp)
                 )
+
+                // Nút Bảng xếp hạng
+                Button(
+                    onClick = { showLeaderboard = true },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp)
+                        .clip(RoundedCornerShape(16.dp)),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1A56DB))
+                ) {
+                    Text(
+                        text = "Bảng xếp hạng",
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontSize = 16.sp,
+                            color = Color.White
+                        )
+                    )
+                }
             }
         }
 
@@ -403,9 +429,10 @@ fun ProfileScreen(
         }
     }
 }
+
 @Composable
 fun WeeklyWorkoutSchedule(
-    weeklySchedule: Map<String, Boolean>, // key: ngày ("T2", "T3", ...), value: đã tập hay chưa
+    weeklySchedule: Map<String, Boolean>,
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -476,7 +503,6 @@ fun WeeklyWorkoutSchedule(
     }
 }
 
-
 @Composable
 fun InfoSavedScreen(
     onBack: () -> Unit
@@ -502,3 +528,4 @@ fun InfoSavedScreen(
         }
     }
 }
+

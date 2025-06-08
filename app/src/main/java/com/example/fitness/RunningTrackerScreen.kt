@@ -1,7 +1,4 @@
 import androidx.compose.ui.graphics.vector.ImageVector
-
-
-
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
@@ -82,24 +79,26 @@ fun RunningTrackerScreen(
 
     // Store recent speeds for moving average
     val speedHistory = remember { mutableStateListOf<Float>() }
-    val maxSpeedHistory = 5 // Number of samples for moving average
-    val minSpeedThreshold = 0.5f // km/h, below this we consider stationary
-    val minDistanceThreshold = 5f // meters, minimum distance to add a new point
-    val maxAccuracyThreshold = 20f // meters, maximum acceptable location accuracy
+    val maxSpeedHistory = 10 // Số mẫu để làm mịn tốc độ
+    val minSpeedThreshold = 1.0f // km/h, ngưỡng tối thiểu để coi là di chuyển
+    val minDistanceThreshold = 10f // meters, khoảng cách tối thiểu để cập nhật
+    val maxAccuracyThreshold = 15f // meters, độ chính xác GPS tối đa
 
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(LatLng(21.0285, 105.8542), 15f)
     }
 
-    // Location callback
+    // Location callback with improved logic for stationary state
     val locationCallback = remember {
         object : LocationCallback() {
             var lastUpdateTime = 0L
             var lastPoint: LatLng? = null
+            var consecutiveNoMovement = 0 // Đếm số lần liên tiếp không di chuyển
+            val noMovementThreshold = 3 // Ngưỡng để coi là đứng im
 
             override fun onLocationResult(locationResult: LocationResult) {
                 val loc = locationResult.lastLocation ?: return
-                if (loc.accuracy > maxAccuracyThreshold) return
+                if (loc.accuracy > maxAccuracyThreshold) return // Bỏ qua nếu GPS không chính xác
 
                 val newPoint = LatLng(loc.latitude, loc.longitude)
                 val currentTime = System.currentTimeMillis()
@@ -114,21 +113,48 @@ fun RunningTrackerScreen(
                     val dist = results[0]
 
                     val timeDiff = (currentTime - lastUpdateTime).coerceAtLeast(1L) // ms, tránh chia 0
-                    val speedCalculated = (dist / timeDiff.toFloat()) * 1000f * 3.6f // m/ms -> m/s -> km/h
+                    val speedCalculated = if (loc.hasSpeed() && loc.speed > 0) {
+                        loc.speed * 3.6f // Sử dụng tốc độ từ GPS nếu có (m/s -> km/h)
+                    } else {
+                        (dist / timeDiff.toFloat()) * 1000f * 3.6f // m/ms -> m/s -> km/h
+                    }
 
-                    // Cập nhật speed nếu đủ điều kiện (khoảng cách đủ lớn, GPS chính xác)
+                    // Kiểm tra chuyển động đáng kể
                     if (dist > minDistanceThreshold && loc.accuracy <= maxAccuracyThreshold) {
                         distance += dist
                         pathPoints = pathPoints + newPoint
-                        speed = if (speedCalculated >= minSpeedThreshold) speedCalculated else 0f
 
-                        // Cập nhật camera khi di chuyển
+                        // Tính tốc độ trung bình động
+                        speedHistory.add(speedCalculated)
+                        if (speedHistory.size > maxSpeedHistory) {
+                            speedHistory.removeAt(0)
+                        }
+                        val avgSpeed = speedHistory.average().toFloat()
+
+                        // Chỉ cập nhật tốc độ nếu vượt ngưỡng tối thiểu
+                        speed = if (avgSpeed >= minSpeedThreshold) {
+                            avgSpeed
+                        } else {
+                            0f // Đặt tốc độ về 0 nếu không đủ ngưỡng
+                        }
+
+                        // Reset bộ đếm đứng im
+                        consecutiveNoMovement = 0
+
+                        // Cập nhật camera
                         coroutineScope.launch {
                             cameraPositionState.animate(CameraUpdateFactory.newLatLng(newPoint))
                         }
 
                         lastPoint = newPoint
                         lastUpdateTime = currentTime
+                    } else {
+                        // Tăng bộ đếm không di chuyển
+                        consecutiveNoMovement++
+                        if (consecutiveNoMovement >= noMovementThreshold) {
+                            speed = 0f // Đặt tốc độ về 0 nếu đứng im liên tục
+                            speedHistory.clear() // Xóa lịch sử tốc độ để tránh ảnh hưởng
+                        }
                     }
                 } else {
                     // Khởi tạo lần đầu
@@ -136,11 +162,11 @@ fun RunningTrackerScreen(
                     lastPoint = newPoint
                     lastUpdateTime = currentTime
                     speed = 0f
+                    consecutiveNoMovement = 0
                 }
             }
         }
     }
-
 
     // Quản lý cập nhật vị trí
     fun startLocationUpdates() {
@@ -150,8 +176,22 @@ fun RunningTrackerScreen(
         }
         val locationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 1000)
             .setMinUpdateIntervalMillis(500)
-            .setMaxUpdateDelayMillis(2000) // Batch updates to reduce noise
+            .setMaxUpdateDelayMillis(2000)
             .build()
+
+        // Lấy vị trí hiện CARE tại để khóa camera
+        fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+            if (location != null && location.accuracy <= maxAccuracyThreshold) {
+                val currentPosition = LatLng(location.latitude, location.longitude)
+                coroutineScope.launch {
+                    cameraPositionState.animate(
+                        CameraUpdateFactory.newLatLngZoom(currentPosition, 15f)
+                    )
+                }
+                pathPoints = listOf(currentPosition) // Khởi tạo điểm đầu tiên
+            }
+        }
+
         fusedLocationClient.requestLocationUpdates(
             locationRequest,
             locationCallback,

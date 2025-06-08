@@ -168,6 +168,8 @@ fun AppNavigation(
                 userId = currentUserId
             )
         }
+
+
         composable("exercise_camera/{id}") { backStackEntry ->
             val id = backStackEntry.arguments?.getString("id")?.toIntOrNull() ?: 0
             ExerciseCameraScreen(exerciseId = id)

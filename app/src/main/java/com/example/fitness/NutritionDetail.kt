@@ -26,12 +26,13 @@ import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.example.fitness.entity.NutritionDetail
 import com.example.fitness.viewModel.NutritionDetailViewModel
+import java.io.File
 
 @Composable
 fun NutritionGroupScreen(
     navController: NavHostController,
     nutritionDetailViewModel: NutritionDetailViewModel,
-    isAdmin: Boolean,  // phân quyền: true = admin, false = user bình thường
+    isAdmin: Boolean,
     groupName: String,
     title: String,
     description: String,
@@ -40,11 +41,11 @@ fun NutritionGroupScreen(
     nutritionTips: List<String>
 ) {
     val nutritionDetails by nutritionDetailViewModel.nutritionDetails.collectAsState()
-
     var showDialog by remember { mutableStateOf(false) }
     var editingNutritionDetail by remember { mutableStateOf<NutritionDetail?>(null) }
 
     val filteredNutritionDetails = nutritionDetails.filter { it.groupName == groupName }
+
     LaunchedEffect(nutritionDetails) {
         nutritionDetailViewModel.loadNutritionDetails()
     }
@@ -60,48 +61,9 @@ fun NutritionGroupScreen(
         Text(text = description, style = MaterialTheme.typography.bodyLarge)
         Spacer(modifier = Modifier.height(16.dp))
 
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text(text = "Lợi ích:", style = MaterialTheme.typography.titleMedium)
-                Spacer(modifier = Modifier.height(8.dp))
-                benefits.forEach { benefit ->
-                    Text(text = "- $benefit", style = MaterialTheme.typography.bodyMedium)
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text(text = "Ví dụ món ăn:", style = MaterialTheme.typography.titleMedium)
-                Spacer(modifier = Modifier.height(8.dp))
-                examples.forEach { example ->
-                    Text(text = "- $example", style = MaterialTheme.typography.bodyMedium)
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text(text = "Lời khuyên dinh dưỡng:", style = MaterialTheme.typography.titleMedium)
-                Spacer(modifier = Modifier.height(8.dp))
-                nutritionTips.forEach { tip ->
-                    Text(text = "- $tip", style = MaterialTheme.typography.bodyMedium)
-                }
-            }
-        }
+        InfoCard("Lợi ích:", benefits)
+        InfoCard("Ví dụ món ăn:", examples)
+        InfoCard("Lời khuyên dinh dưỡng:", nutritionTips)
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -121,7 +83,6 @@ fun NutritionGroupScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Chỉ hiển thị nút Thêm với admin
         if (isAdmin) {
             Button(
                 onClick = {
@@ -141,16 +102,33 @@ fun NutritionGroupScreen(
             group = groupName,
             onDismiss = { showDialog = false },
             onSave = { nutritionDetail ->
-                val updatedNutritionDetail = nutritionDetail.copy(groupName = groupName)
+                val updated = nutritionDetail.copy(groupName = groupName)
                 if (nutritionDetail.id == 0) {
-                    nutritionDetailViewModel.addNutritionDetail(updatedNutritionDetail)
+                    nutritionDetailViewModel.addNutritionDetail(updated)
                 } else {
-                    nutritionDetailViewModel.updateNutritionDetail(updatedNutritionDetail)
+                    nutritionDetailViewModel.updateNutritionDetail(updated)
                 }
                 showDialog = false
             }
         )
     }
+}
+
+@Composable
+fun InfoCard(title: String, items: List<String>) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(text = title, style = MaterialTheme.typography.titleMedium)
+            Spacer(modifier = Modifier.height(8.dp))
+            items.forEach { item ->
+                Text(text = "- $item", style = MaterialTheme.typography.bodyMedium)
+            }
+        }
+    }
+    Spacer(modifier = Modifier.height(16.dp))
 }
 
 @Composable
@@ -160,43 +138,41 @@ fun NutritionItem(
     onEdit: (NutritionDetail) -> Unit,
     onDelete: (NutritionDetail) -> Unit
 ) {
+    val imageModel = when {
+        nutritionDetail.imageUri    !!.startsWith("http") -> nutritionDetail.imageUri // Ảnh online
+        nutritionDetail.imageUri!!.startsWith("content://") -> nutritionDetail.imageUri // URI content từ máy
+        else -> File(nutritionDetail.imageUri) // File nội bộ
+    }
+
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .height(200.dp) // tăng chiều cao để đủ chỗ hình
+            .height(200.dp)
             .padding(vertical = 8.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         shape = RoundedCornerShape(16.dp)
     ) {
-        Box(
-            modifier = Modifier.fillMaxSize()
-        ) {
-            if (!nutritionDetail.imageUri.isNullOrEmpty()) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            if (nutritionDetail.imageUri.isNotEmpty()) {
                 AsyncImage(
-                    model = nutritionDetail.imageUri,
+                    model = imageModel,
                     contentDescription = nutritionDetail.title,
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop,
                 )
             } else {
-                // Nếu không có ảnh thì có thể dùng background màu xám nhạt hoặc màu tùy ý
                 Box(modifier = Modifier
                     .fillMaxSize()
                     .background(Color.LightGray))
             }
 
-            // Lớp phủ gradient để làm nổi bật tiêu đề
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(
                         Brush.verticalGradient(
-                            colors = listOf(
-                                Color.Transparent,
-                                Color.Black.copy(alpha = 0.5f)
-                            ),
-                            startY = 0f,
-                            endY = Float.POSITIVE_INFINITY
+                            colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.5f))
                         )
                     )
             )
@@ -237,8 +213,6 @@ fun NutritionItem(
     }
 }
 
-
-
 @Composable
 fun NutritionDetailDialog(
     nutritionDetail: NutritionDetail?,
@@ -253,7 +227,14 @@ fun NutritionDetailDialog(
     val context = LocalContext.current
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
         if (uri != null) {
-            imageUri = uri.toString()
+            val inputStream = context.contentResolver.openInputStream(uri)
+            val file = File(context.filesDir, "image_${System.currentTimeMillis()}.jpg")
+            inputStream?.use { input ->
+                file.outputStream().use { output ->
+                    input.copyTo(output)
+                }
+            }
+            imageUri = file.absolutePath
         }
     }
 
@@ -280,7 +261,7 @@ fun NutritionDetailDialog(
                 if (imageUri.isNotEmpty()) {
                     Spacer(modifier = Modifier.height(16.dp))
                     AsyncImage(
-                        model = imageUri,
+                        model = File(imageUri),
                         contentDescription = "Hình ảnh đã chọn",
                         modifier = Modifier
                             .fillMaxWidth()
