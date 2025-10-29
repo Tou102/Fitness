@@ -2,7 +2,7 @@ package com.example.fitness.ui.theme
 
 import CaloriesScreen
 import ProfileScreen
-import RunningTrackerScreen
+
 import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -15,6 +15,7 @@ import androidx.navigation.compose.composable
 import com.example.fitness.*
 import com.example.fitness.db.AppDatabase
 import com.example.fitness.ui.screens.FitnessIntroPager
+import com.example.fitness.ui.screens.RunningTrackerScreen
 import com.example.fitness.viewModel.CaloriesViewModel
 import com.example.fitness.viewModel.ExerciseViewModel
 import com.example.fitness.viewModel.NutritionDetailViewModel

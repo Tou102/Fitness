@@ -20,6 +20,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -35,6 +37,7 @@ fun NutritionScreen(
     userViewModel: UserViewModel
 ) {
     var isVisible by remember { mutableStateOf(false) }
+
     LaunchedEffect(Unit) {
         delay(100)
         isVisible = true
@@ -47,7 +50,7 @@ fun NutritionScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(
-                brush = androidx.compose.ui.graphics.Brush.verticalGradient(
+                Brush.verticalGradient(
                     colors = listOf(Color(0xFF2196F3), Color(0xFF42A5F5))
                 )
             )
@@ -57,10 +60,11 @@ fun NutritionScreen(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            // Tiêu đề
             AnimatedVisibility(
                 visible = isVisible,
-                enter = fadeIn(animationSpec = tween(800)),
-                exit = fadeOut(animationSpec = tween(800))
+                enter = fadeIn(tween(800)),
+                exit = fadeOut(tween(800))
             ) {
                 Text(
                     text = "Chế Độ Dinh Dưỡng",
@@ -68,7 +72,7 @@ fun NutritionScreen(
                         color = Color.White,
                         fontWeight = FontWeight.ExtraBold,
                         fontSize = 36.sp,
-                        shadow = androidx.compose.ui.graphics.Shadow(
+                        shadow = Shadow(
                             color = Color.Black.copy(alpha = 0.3f),
                             offset = androidx.compose.ui.geometry.Offset(2f, 2f),
                             blurRadius = 4f
@@ -78,6 +82,7 @@ fun NutritionScreen(
                 )
             }
 
+            // Danh sách thẻ dinh dưỡng
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -104,6 +109,7 @@ fun NutritionCard(
     isAdmin: Boolean
 ) {
     var isPressed by remember { mutableStateOf(false) }
+
     val scale by animateFloatAsState(
         targetValue = if (isPressed) 0.95f else 1f,
         animationSpec = tween(150)
@@ -111,8 +117,8 @@ fun NutritionCard(
 
     AnimatedVisibility(
         visible = isVisible,
-        enter = fadeIn(animationSpec = tween(600)),
-        exit = fadeOut(animationSpec = tween(600))
+        enter = fadeIn(tween(600)),
+        exit = fadeOut(tween(600))
     ) {
         Card(
             modifier = Modifier
@@ -151,7 +157,7 @@ fun NutritionCard(
                     modifier = Modifier
                         .fillMaxSize()
                         .background(
-                            brush = androidx.compose.ui.graphics.Brush.verticalGradient(
+                            Brush.verticalGradient(
                                 colors = listOf(
                                     Color.Black.copy(alpha = 0.1f),
                                     Color.Black.copy(alpha = 0.5f)
@@ -165,7 +171,7 @@ fun NutritionCard(
                     style = MaterialTheme.typography.titleLarge.copy(
                         fontWeight = FontWeight.Bold,
                         fontSize = 24.sp,
-                        shadow = androidx.compose.ui.graphics.Shadow(
+                        shadow = Shadow(
                             color = Color.Black.copy(alpha = 0.5f),
                             offset = androidx.compose.ui.geometry.Offset(1f, 1f),
                             blurRadius = 2f
@@ -180,7 +186,10 @@ fun NutritionCard(
     }
 }
 
-data class NutritionItem(val title: String, val imageResId: Int)
+data class NutritionItem(
+    val title: String,
+    val imageResId: Int
+)
 
 val nutritionItems = listOf(
     NutritionItem("1. Chế độ ăn lỏng", R.drawable.anlong2),
