@@ -21,10 +21,12 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
+import androidx.navigation.NavHostController
 import com.example.fitness.viewModel.CaloriesViewModel
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -38,14 +40,14 @@ import androidx.compose.material.icons.filled.DirectionsRun
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Save
-import androidx.compose.ui.text.style.TextAlign
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.example.fitness.entity.CaloriesRecordEntity
-import com.example.fitness.AiCoach // thêm import này
+import com.example.fitness.AiCoach // dùng AiCoach từ package gốc
 
 @OptIn(MapsComposeExperimentalApi::class)
 @Composable
 fun RunningTrackerScreen(
+    navController: NavHostController,          // 👈 THÊM navController vào tham số
     caloriesViewModel: CaloriesViewModel,
     onNavigateToSave: () -> Unit
 ) {
@@ -156,7 +158,11 @@ fun RunningTrackerScreen(
             .setMinUpdateIntervalMillis(500)
             .setMaxUpdateDelayMillis(2000)
             .build()
-        fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper())
+        fusedLocationClient.requestLocationUpdates(
+            locationRequest,
+            locationCallback,
+            Looper.getMainLooper()
+        )
         isRunning = true
     }
 
@@ -243,19 +249,30 @@ fun RunningTrackerScreen(
             colors = CardDefaults.cardColors(containerColor = lightBlue)
         ) {
             Column(
-                modifier = Modifier.fillMaxWidth().padding(16.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text("Thông số chạy bộ", fontWeight = FontWeight.Bold, fontSize = 20.sp, color = darkBlue)
+                Text(
+                    "Thông số chạy bộ",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 20.sp,
+                    color = darkBlue
+                )
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
                     MetricItem("Tốc độ", "%.2f km/h".format(speed), darkBlue)
                     MetricItem("Quãng đường", "%.2f m".format(distance), darkBlue)
-                    MetricItem("Thời gian", "%02d:%02d:%02d".format(
-                        runningTime / 3600, (runningTime % 3600) / 60, runningTime % 60
-                    ), darkBlue)
+                    MetricItem(
+                        "Thời gian",
+                        "%02d:%02d:%02d".format(
+                            runningTime / 3600, (runningTime % 3600) / 60, runningTime % 60
+                        ),
+                        darkBlue
+                    )
                 }
             }
         }
@@ -263,13 +280,18 @@ fun RunningTrackerScreen(
         // AI Coach suggestion
         if (coachSuggest != null) {
             Card(
-                modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
-                    .clip(RoundedCornerShape(16.dp)).shadow(2.dp, RoundedCornerShape(16.dp)),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .shadow(2.dp, RoundedCornerShape(16.dp)),
                 colors = CardDefaults.cardColors(containerColor = Color(0xFFE3F2FD))
             ) {
-                Text("Gợi ý buổi tiếp theo",
+                Text(
+                    "Gợi ý buổi tiếp theo",
                     modifier = Modifier.padding(top = 12.dp, start = 16.dp, end = 16.dp),
-                    fontWeight = FontWeight.Bold)
+                    fontWeight = FontWeight.Bold
+                )
                 Text(coachSuggest!!, modifier = Modifier.padding(16.dp))
             }
         }
@@ -278,19 +300,57 @@ fun RunningTrackerScreen(
 
         // Buttons row
         Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            ActionButton("Bắt đầu", Icons.Default.DirectionsRun, !isRunning, { startLocationUpdates() }, primaryBlue, Color.White, Modifier.weight(1f))
+            ActionButton(
+                "Bắt đầu",
+                Icons.Default.DirectionsRun,
+                !isRunning,
+                { startLocationUpdates() },
+                primaryBlue,
+                Color.White,
+                Modifier.weight(1f)
+            )
             Spacer(Modifier.width(8.dp))
-            ActionButton("Tạm dừng", Icons.Default.Pause, isRunning, { stopLocationUpdates() }, primaryBlue, Color.White, Modifier.weight(1f))
+            ActionButton(
+                "Tạm dừng",
+                Icons.Default.Pause,
+                isRunning,
+                { stopLocationUpdates() },
+                primaryBlue,
+                Color.White,
+                Modifier.weight(1f)
+            )
             Spacer(Modifier.width(8.dp))
-            ActionButton("Reset", Icons.Default.Refresh, true, {
-                stopLocationUpdates()
-                distance = 0f; speed = 0f; runningTime = 0L; pathPoints = emptyList(); speedHistory.clear()
-            }, accentColor, darkBlue, Modifier.weight(1f))
+            ActionButton(
+                "Reset",
+                Icons.Default.Refresh,
+                true,
+                {
+                    stopLocationUpdates()
+                    distance = 0f
+                    speed = 0f
+                    runningTime = 0L
+                    pathPoints = emptyList()
+                    speedHistory.clear()
+                },
+                accentColor,
+                darkBlue,
+                Modifier.weight(1f)
+            )
             Spacer(Modifier.width(8.dp))
-            ActionButton("Lưu", Icons.Default.Save, !isRunning && runningTime > 0L, { showSaveDialog = true }, primaryBlue, Color.White, Modifier.weight(1f))
+            ActionButton(
+                "Lưu",
+                Icons.Default.Save,
+                !isRunning && runningTime > 0L,
+                { showSaveDialog = true },
+                primaryBlue,
+                Color.White,
+                Modifier.weight(1f)
+            )
         }
     }
 
@@ -306,31 +366,105 @@ fun RunningTrackerScreen(
                     showSaveDialog = false
                 }) { Text("Lưu") }
             },
-            dismissButton = { TextButton(onClick = { showSaveDialog = false }) { Text("Hủy") } },
-            title = { Text("Đánh giá buổi chạy") },
+            dismissButton = {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    // Nút Tư vấn AI (chuyển sang CoachAdviceScreen)
+                    ElevatedButton(
+                        onClick = {
+                            showSaveDialog = false
+                            navController.navigate("coach") // 👈 giờ hợp lệ vì có navController
+                        },
+                        colors = ButtonDefaults.elevatedButtonColors(
+                            containerColor = Color(0xFF0EA5E9),
+                            contentColor = Color.White
+                        ),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.DirectionsRun,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Text("Tư vấn AI")
+                    }
+
+                    TextButton(onClick = { showSaveDialog = false }) {
+                        Text("Hủy", color = Color.Gray)
+                    }
+                }
+            },
+            title = {
+                Text(
+                    "Đánh giá buổi chạy",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp
+                )
+            },
             text = {
                 Column {
-                    Text("RPE (1 = rất dễ, 10 = rất mệt)")
-                    Slider(value = rpe.toFloat(), onValueChange = { rpe = it.toInt() }, steps = 8, valueRange = 1f..10f)
-                    Text("Mục tiêu")
+                    Text("RPE (1 = rất dễ, 10 = rất mệt)", fontWeight = FontWeight.SemiBold)
+                    Slider(
+                        value = rpe.toFloat(),
+                        onValueChange = { rpe = it.toInt().coerceIn(1, 10) },
+                        steps = 8,
+                        valueRange = 1f..10f,
+                        colors = SliderDefaults.colors(
+                            thumbColor = Color(0xFF0EA5E9),
+                            activeTrackColor = Color(0xFF0EA5E9)
+                        )
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    Text("Mục tiêu", fontWeight = FontWeight.SemiBold)
                     DropdownGoal(goal) { goal = it }
+                    Spacer(Modifier.height(12.dp))
+                    HorizontalDivider() // Material3
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        "Bạn có thể nhấn “Tư vấn AI” để nhận gợi ý buổi tập kế tiếp chi tiết hơn.",
+                        color = Color(0xFF475569),
+                        fontSize = 13.sp
+                    )
                 }
-            }
+            },
+            shape = RoundedCornerShape(20.dp),
+            containerColor = Color(0xFFFDFDFE)
         )
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DropdownGoal(current: String, onPick: (String) -> Unit) {
-    var expanded by remember { mutableStateOf(false) }
     val items = listOf("Giảm cân", "5K", "10K", "21K")
-    Box {
-        OutlinedButton(onClick = { expanded = true }) { Text(current) }
-        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+    var expanded by remember { mutableStateOf(false) }
+
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = { expanded = !expanded }
+    ) {
+        OutlinedTextField(
+            readOnly = true,
+            value = current,
+            onValueChange = {},
+            label = { Text("Mục tiêu") },
+            modifier = Modifier
+                .menuAnchor()
+                .fillMaxWidth(),
+            shape = RoundedCornerShape(12.dp)
+        )
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
             items.forEach {
-                DropdownMenuItem(text = { Text(it) }, onClick = {
-                    expanded = false; onPick(it)
-                })
+                DropdownMenuItem(
+                    text = { Text(it) },
+                    onClick = {
+                        expanded = false
+                        onPick(it)
+                    }
+                )
             }
         }
     }
@@ -346,8 +480,13 @@ fun MetricItem(label: String, value: String, color: Color) {
 
 @Composable
 fun ActionButton(
-    text: String, icon: ImageVector, enabled: Boolean, onClick: () -> Unit,
-    containerColor: Color, contentColor: Color, modifier: Modifier = Modifier
+    text: String,
+    icon: ImageVector,
+    enabled: Boolean,
+    onClick: () -> Unit,
+    containerColor: Color,
+    contentColor: Color,
+    modifier: Modifier = Modifier
 ) {
     val scale = remember { Animatable(1f) }
     LaunchedEffect(enabled) {
@@ -357,12 +496,18 @@ fun ActionButton(
         }
     }
     Button(
-        onClick = onClick, enabled = enabled, modifier = modifier.height(56.dp)
-            .graphicsLayer { scaleX = scale.value; scaleY = scale.value }
+        onClick = onClick,
+        enabled = enabled,
+        modifier = modifier
+            .height(56.dp)
+            .graphicsLayer {
+                scaleX = scale.value
+                scaleY = scale.value
+            }
             .clip(RoundedCornerShape(12.dp)),
         colors = ButtonDefaults.buttonColors(containerColor, contentColor)
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(icon, contentDescription = null, modifier = Modifier.size(20.dp))
             Spacer(modifier = Modifier.width(8.dp))
             Text(text, fontWeight = FontWeight.Bold, fontSize = 14.sp)

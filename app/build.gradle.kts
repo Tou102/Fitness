@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -17,9 +19,19 @@ android {
         versionName = "1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        // Thêm API key
-        buildConfigField("String", "API_NINJAS_KEY", "\"qX8sFV+udKBaD6EIZHsZgA==NYWMo4MmDIy7fPBT\"")
+        // --- Đọc local.properties để lấy API key ---
+        val localProps = Properties().apply {
+            val file = rootProject.file("local.properties")
+            if (file.exists()) file.inputStream().use { load(it) }
+        }
 
+        val ninjasApiKey: String = localProps.getProperty("NINJAS_API_KEY")
+            ?: System.getenv("NINJAS_API_KEY")
+            ?: ""
+
+        // --- Đưa vào BuildConfig ---
+        buildConfigField("String", "NINJAS_API_KEY", "\"$ninjasApiKey\"")
+        buildConfigField("String", "NINJAS_BASE_URL", "\"https://api.api-ninjas.com/\"")
     }
 
     buildTypes {
@@ -45,17 +57,17 @@ android {
     }
 }
 
-
 dependencies {
     // --- Networking ---
     implementation("com.squareup.retrofit2:retrofit:2.11.0")
     implementation("com.squareup.retrofit2:converter-moshi:2.11.0")
+    implementation("com.squareup.moshi:moshi-kotlin:1.15.1") // Thêm dòng này để Moshi hoạt động đúng
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
 
-    // --- Room (thống nhất 2.6.1) ---
+    // --- Room ---
     implementation("androidx.room:room-runtime:2.6.1")
     implementation("androidx.room:room-ktx:2.6.1")
-    implementation(libs.androidx.navigation.runtime.android)
     kapt("androidx.room:room-compiler:2.6.1")
 
     // --- Coroutines ---
@@ -71,15 +83,16 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.navigation.runtime.android)
 
-    // Material icons (dùng BOM, KHÔNG cần version)
+    // --- Icons ---
     implementation("androidx.compose.material:material-icons-extended")
 
     // --- Coil (ảnh) ---
     implementation("io.coil-kt:coil-compose:2.7.0")
     implementation("io.coil-kt:coil-gif:2.7.0")
 
-    // --- Google Play services / Maps ---
+    // --- Google Maps ---
     implementation("com.google.android.gms:play-services-location:21.0.1")
     implementation("com.google.android.gms:play-services-maps:18.0.2")
     implementation("com.google.maps.android:maps-compose:2.13.0")
@@ -89,7 +102,7 @@ dependencies {
     implementation("com.google.accompanist:accompanist-pager-indicators:0.31.5-beta")
     implementation("com.google.accompanist:accompanist-permissions:0.31.2-alpha")
 
-    // --- CameraX (đồng bộ 1.4.2) ---
+    // --- CameraX ---
     implementation("androidx.camera:camera-camera2:1.4.2")
     implementation("androidx.camera:camera-lifecycle:1.4.2")
     implementation("androidx.camera:camera-view:1.4.2")

@@ -1,202 +1,264 @@
-package com.example.fitness
+package com.example.fitness.ui.screens
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.Image
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Shadow
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import com.example.fitness.viewModel.UserViewModel
-import kotlinx.coroutines.delay
+import com.example.fitness.repository.NutritionRepoLocalFirst
+import kotlinx.coroutines.launch
 
+// ---- Palette & styles ----
+private val BluePrimary = Color(0xFF0EA5E9)      // sky-500
+private val BluePrimaryDark = Color(0xFF0284C7)  // sky-600
+private val BlueLight = Color(0xFFE0F2FE)        // sky-100
+private val SurfaceSoft = Color(0xFFF8FAFC)      // slate-50
+
+// ---- Data model ----
+private data class ChatMessage(
+    val id: Long,
+    val text: String,
+    val isUser: Boolean
+)
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NutritionScreen(
-    navController: NavHostController,
-    userViewModel: UserViewModel
+    navController: NavHostController
 ) {
-    var isVisible by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    val repoLocalFirst = remember { NutritionRepoLocalFirst(context) }
 
-    LaunchedEffect(Unit) {
-        delay(100)
-        isVisible = true
+    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
+    val scope = rememberCoroutineScope()
+
+    val messages = remember {
+        mutableStateListOf(
+            ChatMessage(1, "Chào bạn! Gửi tên món ăn (vd: 'phở gà 500g') để mình ước lượng calo nhé 🍜", false)
+        )
+    }
+    var input by remember { mutableStateOf("") }
+    val listState = rememberLazyListState()
+
+    // Tự cuộn xuống cuối khi có tin nhắn mới
+    LaunchedEffect(messages.size) {
+        if (messages.isNotEmpty()) {
+            listState.animateScrollToItem(messages.lastIndex)
+        }
     }
 
-    val user by userViewModel.user.collectAsState()
-    val isAdmin = user?.role == "admin"
+    // Nền gradient xanh dương "healthy"
+    val healthGradient = Brush.verticalGradient(
+        colors = listOf(
+            BluePrimary,
+            Color(0xFF38BDF8), // sky-400
+            BlueLight
+        )
+    )
 
-    Box(
+    Scaffold(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    colors = listOf(Color(0xFF2196F3), Color(0xFF42A5F5))
-                )
-            )
-            .padding(horizontal = 16.dp, vertical = 24.dp)
-    ) {
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            // Tiêu đề
-            AnimatedVisibility(
-                visible = isVisible,
-                enter = fadeIn(tween(800)),
-                exit = fadeOut(tween(800))
-            ) {
-                Text(
-                    text = "Chế Độ Dinh Dưỡng",
-                    style = MaterialTheme.typography.headlineLarge.copy(
-                        color = Color.White,
-                        fontWeight = FontWeight.ExtraBold,
-                        fontSize = 36.sp,
-                        shadow = Shadow(
-                            color = Color.Black.copy(alpha = 0.3f),
-                            offset = androidx.compose.ui.geometry.Offset(2f, 2f),
-                            blurRadius = 4f
-                        )
-                    ),
-                    modifier = Modifier.padding(bottom = 24.dp)
-                )
-            }
-
-            // Danh sách thẻ dinh dưỡng
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                contentPadding = PaddingValues(bottom = 16.dp)
-            ) {
-                items(nutritionItems) { item ->
-                    NutritionCard(
-                        item = item,
-                        navController = navController,
-                        isVisible = isVisible,
-                        isAdmin = isAdmin
+            .nestedScroll(scrollBehavior.nestedScrollConnection)
+            .background(healthGradient),
+        topBar = {
+            CenterAlignedTopAppBar(
+                title = {
+                    Text(
+                        "Chat dinh dưỡng",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = Color.White
                     )
+                },
+                navigationIcon = {
+                    IconButton(onClick = { navController.navigate("workout") }) {
+                        Icon(Icons.Filled.ArrowBack, contentDescription = "Back", tint = Color.White)
+                    }
+                },
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    containerColor = Color.Transparent,
+                    scrolledContainerColor = BluePrimaryDark
+                ),
+                scrollBehavior = scrollBehavior
+            )
+        },
+        bottomBar = {
+            // Thanh nhập dạng capsule nổi trên nền
+            Surface(
+                tonalElevation = 6.dp,
+                shadowElevation = 8.dp,
+                color = SurfaceSoft.copy(alpha = 0.98f)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .imePadding()
+                        .padding(12.dp)
+                        .clip(RoundedCornerShape(24.dp))
+                        .background(Color.White),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    OutlinedTextField(
+                        value = input,
+                        onValueChange = { input = it },
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(start = 12.dp),
+                        placeholder = { Text("Nhập món ăn…", color = Color(0xFF94A3B8)) },
+                        singleLine = true,
+                        shape = RoundedCornerShape(20.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = BluePrimary,
+                            unfocusedBorderColor = Color(0xFFE2E8F0),
+                            focusedTextColor = Color(0xFF0F172A),
+                            unfocusedTextColor = Color(0xFF0F172A),
+                            cursorColor = BluePrimary
+                        )
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    FilledIconButton(
+                        onClick = {
+                            val content = input.trim()
+                            if (content.isNotEmpty()) {
+                                messages += ChatMessage(System.currentTimeMillis(), content, true)
+                                input = ""
+                                scope.launch {
+                                    val reply = repoLocalFirst.getNutritionInfo(content)
+                                    messages += ChatMessage(System.currentTimeMillis() + 1, reply, false)
+                                }
+                            }
+                        },
+                        modifier = Modifier
+                            .padding(end = 10.dp)
+                            .size(44.dp),
+                        shape = CircleShape,
+                        colors = IconButtonDefaults.filledIconButtonColors(
+                            containerColor = BluePrimary,
+                            contentColor = Color.White
+                        )
+                    ) {
+                        Icon(Icons.Filled.Send, contentDescription = "Gửi")
+                    }
+                }
+            }
+        }
+    ) { innerPadding ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .background(healthGradient)
+        ) {
+            // Lớp thẻ nội dung mềm để dễ đọc
+            Surface(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(top = 0.dp),
+                color = Color.White.copy(alpha = 0.6f),
+                tonalElevation = 0.dp
+            ) {
+                if (messages.isEmpty()) {
+                    Box(Modifier.fillMaxSize()) {
+                        Text(
+                            "Bắt đầu trò chuyện về dinh dưỡng của bạn!",
+                            modifier = Modifier
+                                .align(Alignment.Center)
+                                .padding(24.dp),
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = Color(0xFF0F172A),
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                } else {
+                    LazyColumn(
+                        state = listState,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = 12.dp, vertical = 8.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        itemsIndexed(messages, key = { _, m -> m.id }) { _, msg ->
+                            ChatBubble(message = msg.text, isUser = msg.isUser)
+                        }
+                        item { Spacer(Modifier.height(84.dp)) } // chừa chỗ cho bottom bar
+                    }
                 }
             }
         }
     }
 }
 
+/** Bong bóng chat: xanh dương cho user, trắng + viền xanh cho bot */
 @Composable
-fun NutritionCard(
-    item: NutritionItem,
-    navController: NavHostController,
-    isVisible: Boolean,
-    isAdmin: Boolean
-) {
-    var isPressed by remember { mutableStateOf(false) }
-
-    val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.95f else 1f,
-        animationSpec = tween(150)
-    )
-
-    AnimatedVisibility(
-        visible = isVisible,
-        enter = fadeIn(tween(600)),
-        exit = fadeOut(tween(600))
+private fun ChatBubble(message: String, isUser: Boolean) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = if (isUser) Arrangement.End else Arrangement.Start,
+        verticalAlignment = Alignment.Bottom
     ) {
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(200.dp)
-                .scale(scale)
-                .shadow(8.dp, RoundedCornerShape(16.dp))
-                .clip(RoundedCornerShape(16.dp))
-                .clickable(
-                    onClick = {
-                        isPressed = true
-                        when (item.title) {
-                            "1. Chế độ ăn lỏng" -> navController.navigate("anlong_detail")
-                            "2. Chế độ ăn kiêng cho người tiểu đường" -> navController.navigate("ankieng_detail")
-                            "3. Chế độ dinh dưỡng giàu calo" -> navController.navigate("calo_detail")
-                            "4. Chế độ ăn ít cholesterol" -> navController.navigate("choles_detail")
-                            "5. Chế độ ăn chay" -> navController.navigate("anchay_detail")
-                            "6. Chế độ ăn ít natri" -> navController.navigate("natri_detail")
-                            "7. Chế độ dinh dưỡng ít và giàu protein" -> navController.navigate("protein_detail")
-                        }
-                    },
-                    onClickLabel = "Select ${item.title}"
-                )
-                .padding(4.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White),
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        if (!isUser) {
+            // Avatar bot
+            Box(
+                modifier = Modifier
+                    .size(32.dp)
+                    .clip(CircleShape)
+                    .background(BlueLight),
+                contentAlignment = Alignment.Center
+            ) {
+                Text("AI", style = MaterialTheme.typography.labelSmall, color = BluePrimary)
+            }
+            Spacer(Modifier.width(8.dp))
+        }
+
+        Surface(
+            shape = RoundedCornerShape(
+                topStart = 18.dp, topEnd = 18.dp,
+                bottomStart = if (isUser) 18.dp else 6.dp,
+                bottomEnd  = if (isUser) 6.dp else 18.dp
+            ),
+            color = if (isUser) BluePrimary else Color.White,
+            tonalElevation = if (isUser) 2.dp else 1.dp,
+            shadowElevation = if (isUser) 2.dp else 0.dp,
+            border = if (isUser) null else BorderStroke(1.dp, BlueLight.copy(alpha = 0.9f))
         ) {
-            Box {
-                Image(
-                    painter = painterResource(id = item.imageResId),
-                    contentDescription = item.title,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize()
-                )
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(
-                            Brush.verticalGradient(
-                                colors = listOf(
-                                    Color.Black.copy(alpha = 0.1f),
-                                    Color.Black.copy(alpha = 0.5f)
-                                )
-                            )
-                        )
-                )
-                Text(
-                    text = item.title,
-                    color = Color.White,
-                    style = MaterialTheme.typography.titleLarge.copy(
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 24.sp,
-                        shadow = Shadow(
-                            color = Color.Black.copy(alpha = 0.5f),
-                            offset = androidx.compose.ui.geometry.Offset(1f, 1f),
-                            blurRadius = 2f
-                        )
-                    ),
-                    modifier = Modifier
-                        .align(Alignment.BottomStart)
-                        .padding(16.dp)
-                )
+            Text(
+                text = message,
+                modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+                style = MaterialTheme.typography.bodyMedium,
+                color = if (isUser) Color.White else Color(0xFF0F172A)
+            )
+        }
+
+        if (isUser) {
+            Spacer(Modifier.width(8.dp))
+            // Avatar user
+            Box(
+                modifier = Modifier
+                    .size(32.dp)
+                    .clip(CircleShape)
+                    .background(BlueLight),
+                contentAlignment = Alignment.Center
+            ) {
+                Text("You", style = MaterialTheme.typography.labelSmall, color = BluePrimaryDark)
             }
         }
     }
 }
-
-data class NutritionItem(
-    val title: String,
-    val imageResId: Int
-)
-
-val nutritionItems = listOf(
-    NutritionItem("1. Chế độ ăn lỏng", R.drawable.anlong2),
-    NutritionItem("2. Chế độ ăn kiêng cho người tiểu đường", R.drawable.ankieng),
-    NutritionItem("3. Chế độ dinh dưỡng giàu calo", R.drawable.giaucalo),
-    NutritionItem("4. Chế độ ăn ít cholesterol", R.drawable.cholesterol),
-    NutritionItem("5. Chế độ ăn chay", R.drawable.anchay),
-    NutritionItem("6. Chế độ ăn ít natri", R.drawable.natri),
-    NutritionItem("7. Chế độ dinh dưỡng ít và giàu protein", R.drawable.protein)
-)
