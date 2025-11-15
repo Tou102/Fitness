@@ -19,6 +19,7 @@ playServicesLocation = "21.3.0"
 cameraView = "1.4.2"
 navigationRuntimeAndroid = "2.9.5"
 roomCompiler = "2.8.3"
+firebaseCrashlyticsBuildtools = "3.0.6"
 
 [libraries]
 accompanist-glide = { module = "com.google.accompanist:accompanist-glide", version.ref = "accompanistGlide" }
@@ -47,6 +48,7 @@ play-services-location = { group = "com.google.android.gms", name = "play-servic
 androidx-camera-view = { group = "androidx.camera", name = "camera-view", version.ref = "cameraView" }
 androidx-navigation-runtime-android = { group = "androidx.navigation", name = "navigation-runtime-android", version.ref = "navigationRuntimeAndroid" }
 androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "roomCompiler" }
+firebase-crashlytics-buildtools = { group = "com.google.firebase", name = "firebase-crashlytics-buildtools", version.ref = "firebaseCrashlyticsBuildtools" }
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
