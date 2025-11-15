@@ -18,6 +18,7 @@ runtimeLivedata = "1.8.2"
 playServicesLocation = "21.3.0"
 cameraView = "1.4.2"
 navigationRuntimeAndroid = "2.9.5"
+roomCompiler = "2.8.3"
 
 [libraries]
 accompanist-glide = { module = "com.google.accompanist:accompanist-glide", version.ref = "accompanistGlide" }
@@ -45,6 +46,7 @@ androidx-runtime-livedata = { group = "androidx.compose.runtime", name = "runtim
 play-services-location = { group = "com.google.android.gms", name = "play-services-location", version.ref = "playServicesLocation" }
 androidx-camera-view = { group = "androidx.camera", name = "camera-view", version.ref = "cameraView" }
 androidx-navigation-runtime-android = { group = "androidx.navigation", name = "navigation-runtime-android", version.ref = "navigationRuntimeAndroid" }
+androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "roomCompiler" }
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }

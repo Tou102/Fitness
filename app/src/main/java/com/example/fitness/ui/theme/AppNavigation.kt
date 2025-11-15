@@ -7,6 +7,7 @@ import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -14,13 +15,17 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.fitness.*
 import com.example.fitness.db.AppDatabase
+import com.example.fitness.repository.CaloriesRepository
+import com.example.fitness.ui.screens.CoachAdviceScreen
+
 import com.example.fitness.ui.screens.FitnessIntroPager
+import com.example.fitness.ui.screens.NutritionScreen
 import com.example.fitness.ui.screens.RunningTrackerScreen
 import com.example.fitness.viewModel.CaloriesViewModel
+
 import com.example.fitness.viewModel.ExerciseViewModel
 import com.example.fitness.viewModel.NutritionDetailViewModel
 import com.example.fitness.viewModel.UserViewModel
-import com.example.fitness.viewModel.WaterIntakeViewModel
 import com.example.fitness.viewModel.WorkoutViewModel
 import com.example.fitness.viewModelFactory.CaloriesViewModelFactory
 import com.example.fitness.viewModelFactory.ExerciseViewModelFactory
@@ -38,7 +43,7 @@ fun AppNavigation(
 
     val userViewModel: UserViewModel = viewModel(factory = UserViewModelFactory(db))
     val exerciseViewModel: ExerciseViewModel = viewModel(factory = ExerciseViewModelFactory(db))
-    val caloriesRepository = com.example.fitness.repository.CaloriesRepository(db.caloriesRecordDao())
+    val caloriesRepository = CaloriesRepository(db.caloriesRecordDao())
     val caloriesViewModel: CaloriesViewModel = viewModel(factory = CaloriesViewModelFactory(caloriesRepository))
     val nutritionDetailViewModel: NutritionDetailViewModel = viewModel(factory = NutritionDetailViewModelFactory(db))
     val workoutViewModel: WorkoutViewModel = viewModel(factory = WorkoutViewModelFactory(db.workoutSessionDao()))
@@ -61,6 +66,9 @@ fun AppNavigation(
         composable("bmi") {
             BmiScreen(navController = navController)
         }
+        composable("coach") {
+            CoachAdviceScreen(navController = navController)
+        }
         composable("workout") {
             WorkoutScreen(
                 navController = navController,
@@ -71,12 +79,17 @@ fun AppNavigation(
         }
 
         composable("nutrition") {
-            NutritionScreen(navController = navController, userViewModel = userViewModel)
+            NutritionScreen(
+                navController = navController
+            )
         }
-        composable("running") {
+
+
+        composable(route = "running") {
             RunningTrackerScreen(
-                onNavigateToSave = { navController.navigate("calories") },
-                caloriesViewModel = caloriesViewModel
+                navController = navController,                 // ✅ truyền vào
+                caloriesViewModel = caloriesViewModel,         // ✅ truyền vào
+                onNavigateToSave = { navController.navigate("calories") }
             )
         }
         composable("calories") {
@@ -95,55 +108,8 @@ fun AppNavigation(
         composable("gioithieu") {
             FitnessIntroPager(navController = navController)
         }
-        composable("anlong_detail") {
-            AnLongChiTiet(
-                navController,
-                nutritionDetailViewModel,
-                isAdmin = isAdmin
-            )
-        }
-        composable("ankieng_detail") {
-            AnKiengChiTiet(
-                navController,
-                nutritionDetailViewModel,
-                isAdmin = isAdmin
-            )
-        }
-        composable("calo_detail") {
-            CaloChiTiet(
-                navController,
-                nutritionDetailViewModel,
-                isAdmin = isAdmin
-            )
-        }
-        composable("choles_detail") {
-            CholesterolChiTiet(
-                navController,
-                nutritionDetailViewModel,
-                isAdmin = isAdmin
-            )
-        }
-        composable("anchay_detail") {
-            AnChayChiTiet(
-                navController,
-                nutritionDetailViewModel,
-                isAdmin = isAdmin
-            )
-        }
-        composable("natri_detail") {
-            NatriChiTiet(
-                navController,
-                nutritionDetailViewModel,
-                isAdmin = isAdmin
-            )
-        }
-        composable("protein_detail") {
-            ProteinThapChiTiet(
-                navController,
-                nutritionDetailViewModel,
-                isAdmin = isAdmin
-            )
-        }
+
+
         // Các route khác giữ nguyên
         composable("workoutDetails/FULLBODY") {
             FullBody(navController, exerciseViewModel, isAdmin)
