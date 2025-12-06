@@ -85,9 +85,9 @@ abstract class AppDatabase : RoomDatabase() {
                         database.userDao().insert(adminUser)
                     }
 
-                    // seed món ăn Việt từ assets/foods_vi.json
+                    // seed món ăn Việt từ assets/coach_dataset.json
                     try {
-                        val seed = readFoodsFromAssets(appContext, "foods_vi.json")
+                        val seed = readFoodsFromAssets(appContext, "coach_dataset.json")
                         if (seed.isNotEmpty()) database.foodDao().insertAll(seed)
                     } catch (_: Exception) { /* log nếu cần */ }
                 }

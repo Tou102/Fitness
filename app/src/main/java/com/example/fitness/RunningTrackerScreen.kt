@@ -1,516 +1,474 @@
+@file:OptIn(ExperimentalMaterial3Api::class, MapsComposeExperimentalApi::class)
+
 package com.example.fitness.ui.screens
 
-import androidx.compose.ui.graphics.vector.ImageVector
-import android.Manifest
-import android.content.pm.PackageManager
 import android.os.Looper
-import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.compose.ui.platform.LocalContext
-import androidx.core.content.ContextCompat
-import androidx.navigation.NavHostController
-import com.example.fitness.viewModel.CaloriesViewModel
-import com.google.android.gms.location.*
-import com.google.android.gms.maps.CameraUpdateFactory
-import com.google.android.gms.maps.model.CameraPosition
-import com.google.android.gms.maps.model.LatLng
-import com.google.maps.android.compose.*
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DirectionsRun
 import androidx.compose.material.icons.filled.Pause
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Save
-import com.google.android.gms.maps.model.BitmapDescriptorFactory
-import com.example.fitness.entity.CaloriesRecordEntity
-import com.example.fitness.AiCoach // dùng AiCoach từ package gốc
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
+import androidx.navigation.NavHostController
+import com.example.fitness.viewModel.CaloriesViewModel
+import com.google.android.gms.location.LocationCallback
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationResult
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
+import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.model.CameraPosition
+import com.google.android.gms.maps.model.LatLng
+import com.google.maps.android.compose.GoogleMap
+import com.google.maps.android.compose.MapsComposeExperimentalApi
+import com.google.maps.android.compose.Marker
+import com.google.maps.android.compose.Polyline
+import com.google.maps.android.compose.rememberCameraPositionState
+import com.google.maps.android.compose.rememberMarkerState
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
-@OptIn(MapsComposeExperimentalApi::class)
+// =========== MÀU SẮC ==============
+val fitnessBlue = Color(0xFF0EA5E9)
+val fitnessBlueDark = Color(0xFF0369A1)
+val fitnessBlueLight = Color(0xFFBAE6FD)
+val fitnessCard = Color(0xFFD7F3FF)
+val fitnessBg = Color(0xFFF3FAFF)
+
 @Composable
 fun RunningTrackerScreen(
-    navController: NavHostController,          // 👈 THÊM navController vào tham số
+    navController: NavHostController,
     caloriesViewModel: CaloriesViewModel,
     onNavigateToSave: () -> Unit
 ) {
     val context = LocalContext.current
     val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
-    val coroutineScope = rememberCoroutineScope()
+    val scope = rememberCoroutineScope()
 
-    var hasLocationPermission by remember { mutableStateOf(false) }
-    val permissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { granted ->
-        hasLocationPermission = granted
-        if (!granted) {
-            Toast.makeText(context, "Cần cấp quyền vị trí để sử dụng", Toast.LENGTH_LONG).show()
-        }
-    }
-
-    LaunchedEffect(Unit) {
-        hasLocationPermission = ContextCompat.checkSelfPermission(
-            context,
-            Manifest.permission.ACCESS_FINE_LOCATION
-        ) == PackageManager.PERMISSION_GRANTED
-
-        if (!hasLocationPermission) {
-            permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
-        }
-    }
-
+    // ========== STATE ==========
     var isRunning by remember { mutableStateOf(false) }
     var pathPoints by remember { mutableStateOf(listOf<LatLng>()) }
-    var distance by remember { mutableStateOf(0f) }
-    var speed by remember { mutableStateOf(0f) }
-    var runningTime by remember { mutableStateOf(0L) }
+    var distance by remember { mutableStateOf(0f) }           // mét
+    var runningTime by remember { mutableStateOf(0L) }        // giây
+    var caloriesBurned by remember { mutableStateOf(0f) }
+    var avgSpeed by remember { mutableStateOf(0f) }           // km/h
+    var avgPace by remember { mutableStateOf("--:--'/km") }   // phút/km
+    var maxSpeed by remember { mutableStateOf(0f) }
 
-    // AI Coach state
-    var rpe by remember { mutableStateOf(5) }
-    var goal by remember { mutableStateOf("Giảm cân") }
-    var coachSuggest by remember { mutableStateOf<String?>(null) }
     var showSaveDialog by remember { mutableStateOf(false) }
 
-    fun avgPaceMinPerKm(distanceM: Float, timeSec: Long): Double? {
-        if (distanceM < 200 || timeSec < 60) return null
-        val km = distanceM / 1000f
-        val min = timeSec / 60f
-        return (min / km).toDouble()
-    }
-
-    // speed smoothing logic
-    val speedHistory = remember { mutableStateListOf<Float>() }
-    val maxSpeedHistory = 10
-    val minSpeedThreshold = 1.0f
-    val minDistanceThreshold = 10f
-    val maxAccuracyThreshold = 15f
-
+    // Camera state cho Google Map (để animate đến vị trí hiện tại)
     val cameraPositionState = rememberCameraPositionState {
-        position = CameraPosition.fromLatLngZoom(LatLng(21.0285, 105.8542), 15f)
+        position = CameraPosition.fromLatLngZoom(
+            LatLng(21.0285, 105.8542), // default: Hà Nội
+            15f
+        )
     }
 
+    // ===== HÀM TÍNH CHỈ SỐ =====
+    fun recalculateStats() {
+        if (runningTime > 0 && distance > 0) {
+            // km/h
+            avgSpeed = (distance / 1000f) / (runningTime / 3600f)
+
+            val paceMinPerKm = (runningTime / 60f) / (distance / 1000f)
+            val min = paceMinPerKm.toInt()
+            val sec = ((paceMinPerKm - min) * 60).toInt().coerceAtLeast(0)
+
+            avgPace = "$min:${sec.toString().padStart(2, '0')}'/km"
+
+            // calories: tạm thời = quãng đường(m) * 0.065 (người ~70kg)
+            caloriesBurned = distance * 0.065f
+        }
+    }
+
+    // ===== LOCATION CALLBACK =====
     val locationCallback = remember {
         object : LocationCallback() {
-            var lastUpdateTime = 0L
-            var lastPoint: LatLng? = null
-            override fun onLocationResult(locationResult: LocationResult) {
-                val loc = locationResult.lastLocation ?: return
-                if (loc.accuracy > maxAccuracyThreshold) return
-                val newPoint = LatLng(loc.latitude, loc.longitude)
-                val currentTime = System.currentTimeMillis()
-                if (lastPoint != null) {
-                    val results = FloatArray(1)
+            var lastLocation: LatLng? = null
+            var lastTime = 0L
+
+            override fun onLocationResult(result: LocationResult) {
+                val loc = result.lastLocation ?: return
+
+                // Nếu độ chính xác quá tệ thì bỏ qua (test thì có thể comment dòng này)
+                if (loc.accuracy > 60f) return
+
+                val current = LatLng(loc.latitude, loc.longitude)
+                val now = System.currentTimeMillis()
+
+                if (lastLocation != null && isRunning) {
+                    val dist = FloatArray(1)
                     android.location.Location.distanceBetween(
-                        lastPoint!!.latitude, lastPoint!!.longitude,
-                        newPoint.latitude, newPoint.longitude,
-                        results
+                        lastLocation!!.latitude, lastLocation!!.longitude,
+                        current.latitude, current.longitude, dist
                     )
-                    val dist = results[0]
-                    val timeDiff = (currentTime - lastUpdateTime).coerceAtLeast(1L)
-                    val speedCalculated = if (loc.hasSpeed() && loc.speed > 0) {
-                        loc.speed * 3.6f
-                    } else (dist / timeDiff.toFloat()) * 1000f * 3.6f
-                    if (dist > minDistanceThreshold) {
-                        distance += dist
-                        pathPoints = pathPoints + newPoint
-                        speedHistory.add(speedCalculated)
-                        if (speedHistory.size > maxSpeedHistory) speedHistory.removeAt(0)
-                        val avgSpeed = speedHistory.average().toFloat()
-                        speed = if (avgSpeed >= minSpeedThreshold) avgSpeed else 0f
-                        coroutineScope.launch {
-                            cameraPositionState.animate(CameraUpdateFactory.newLatLng(newPoint))
+
+                    // Chỉ tính khi di chuyển đủ xa (vd > 2m)
+                    if (dist[0] > 2f) {
+                        distance += dist[0]
+                        pathPoints = pathPoints + current
+
+                        val timeDiff = (now - lastTime) / 1000f
+                        if (timeDiff > 0) {
+                            val instantSpeed = (dist[0] / timeDiff) * 3.6f // m/s -> km/h
+                            if (instantSpeed > maxSpeed) maxSpeed = instantSpeed
                         }
-                        lastPoint = newPoint
-                        lastUpdateTime = currentTime
+
+                        recalculateStats()
                     }
                 } else {
-                    pathPoints = listOf(newPoint)
-                    lastPoint = newPoint
-                    lastUpdateTime = currentTime
+                    // điểm đầu tiên
+                    pathPoints = listOf(current)
+                }
+
+                lastLocation = current
+                lastTime = now
+
+                // Camera follow vị trí hiện tại
+                scope.launch {
+                    cameraPositionState.animate(
+                        update = CameraUpdateFactory.newLatLngZoom(current, 17f),
+                        durationMs = 600
+                    )
                 }
             }
         }
     }
 
-    fun startLocationUpdates() {
-        if (!hasLocationPermission) {
-            permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+    // ===== HÀM BẮT ĐẦU / DỪNG =====
+    fun startTracking() {
+        // Kiểm tra quyền
+        if (ContextCompat.checkSelfPermission(
+                context,
+                android.Manifest.permission.ACCESS_FINE_LOCATION
+            ) != android.content.pm.PackageManager.PERMISSION_GRANTED
+        ) {
             return
         }
-        val locationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 1000)
-            .setMinUpdateIntervalMillis(500)
-            .setMaxUpdateDelayMillis(2000)
+
+        // reset số liệu khi bắt đầu mới (tuỳ bạn muốn reset hay resume)
+        if (!isRunning && runningTime == 0L) {
+            distance = 0f
+            caloriesBurned = 0f
+            avgSpeed = 0f
+            avgPace = "--:--'/km"
+            maxSpeed = 0f
+            pathPoints = emptyList()
+        }
+
+        val request = LocationRequest.Builder(1000L) // 1s / lần
+            .setPriority(Priority.PRIORITY_HIGH_ACCURACY)
+            .setMinUpdateDistanceMeters(2f)
             .build()
+
         fusedLocationClient.requestLocationUpdates(
-            locationRequest,
+            request,
             locationCallback,
             Looper.getMainLooper()
         )
+
         isRunning = true
     }
 
-    fun stopLocationUpdates() {
+    fun stopTracking() {
         fusedLocationClient.removeLocationUpdates(locationCallback)
         isRunning = false
-        speedHistory.clear()
+        recalculateStats()
     }
 
+    // Dọn dẹp khi composable bị huỷ
+    DisposableEffect(Unit) {
+        onDispose {
+            fusedLocationClient.removeLocationUpdates(locationCallback)
+        }
+    }
+
+    // ===== LAUNCHER XIN QUYỀN LOCATION =====
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) {
+            startTracking()
+        } else {
+            // Có thể show snackbar / dialog báo cần quyền location
+        }
+    }
+
+    fun requestLocationPermissionAndStart() {
+        val granted = ContextCompat.checkSelfPermission(
+            context,
+            android.Manifest.permission.ACCESS_FINE_LOCATION
+        ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+
+        if (granted) {
+            startTracking()
+        } else {
+            permissionLauncher.launch(android.Manifest.permission.ACCESS_FINE_LOCATION)
+        }
+    }
+
+    // ===== TIMER: mỗi giây tăng runningTime =====
     LaunchedEffect(isRunning) {
         while (isRunning) {
             delay(1000L)
             runningTime++
+            recalculateStats()
         }
     }
 
-    val caloriesBurned = distance * 0.06f
-
-    fun saveRun() {
+    // ===== LƯU + GỬI SANG COACH =====
+    fun saveAndSendToCoach() {
         if (runningTime == 0L) return
-        val record = CaloriesRecordEntity(
-            caloriesBurned = caloriesBurned,
-            timestamp = System.currentTimeMillis(),
-            distance = distance,
-            runningTime = runningTime
+
+        caloriesViewModel.addRecord(
+            com.example.fitness.entity.CaloriesRecordEntity(
+                caloriesBurned = caloriesBurned,
+                distance = distance,
+                runningTime = runningTime,
+                timestamp = System.currentTimeMillis()
+            )
         )
-        caloriesViewModel.addRecord(record)
+
+        val summary = """
+            Tôi vừa chạy xong:
+            • Quãng đường: ${"%.2f".format(distance / 1000)} km
+            • Thời gian: ${runningTime / 60} phút ${runningTime % 60} giây
+            • Tốc độ TB: ${"%.1f".format(avgSpeed)} km/h
+            • Pace TB: $avgPace
+            • Tốc độ cao nhất: ${"%.1f".format(maxSpeed)} km/h
+            • Calo tiêu hao: ${"%.0f".format(caloriesBurned)} kcal
+            
+            Gợi ý kế hoạch tập tiếp theo cho tôi nhé!
+        """.trimIndent()
+
+        navController.navigate("coach?runSummary=${android.net.Uri.encode(summary)}")
         onNavigateToSave()
-        distance = 0f
-        speed = 0f
-        runningTime = 0L
-        pathPoints = emptyList()
-        speedHistory.clear()
-        isRunning = false
     }
 
-    val primaryBlue = Color(0xFF0288D1)
-    val lightBlue = Color(0xFF4FC3F7)
-    val darkBlue = Color(0xFF01579B)
-    val accentColor = Color(0xFFFFCA28)
-
+    // ============== UI ==============
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
+            .background(
+                Brush.verticalGradient(
+                    listOf(Color.White, fitnessBg)
+                )
+            )
             .padding(16.dp)
     ) {
         // Map
         Card(
             modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(16.dp))
-                .shadow(8.dp, RoundedCornerShape(16.dp)),
-            colors = CardDefaults.cardColors(containerColor = Color.White)
+                .weight(1f),
+            shape = RoundedCornerShape(20.dp),
+            colors = CardDefaults.cardColors(Color.White)
         ) {
             GoogleMap(
-                modifier = Modifier.fillMaxSize(),
-                cameraPositionState = cameraPositionState,
-                uiSettings = MapUiSettings(zoomControlsEnabled = false)
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clip(RoundedCornerShape(20.dp)),
+                cameraPositionState = cameraPositionState
             ) {
                 if (pathPoints.size > 1) {
-                    Polyline(points = pathPoints, color = primaryBlue, width = 12f)
+                    Polyline(
+                        points = pathPoints,
+                        color = fitnessBlue,
+                        width = 16f
+                    )
                 }
-                pathPoints.lastOrNull()?.let { lastPoint ->
-                    val markerState = rememberMarkerState(position = lastPoint)
+
+                pathPoints.lastOrNull()?.let {
                     Marker(
-                        state = markerState,
-                        title = "Vị trí hiện tại",
-                        icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)
+                        state = rememberMarkerState(position = it)
                     )
                 }
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(Modifier.height(16.dp))
 
-        // Metrics card
+        // Stats
         Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(16.dp))
-                .shadow(4.dp, RoundedCornerShape(16.dp)),
-            colors = CardDefaults.cardColors(containerColor = lightBlue)
+            shape = RoundedCornerShape(20.dp),
+            colors = CardDefaults.cardColors(fitnessCard)
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
+            Column(Modifier.padding(20.dp)) {
                 Text(
-                    "Thông số chạy bộ",
+                    "Thông số buổi chạy",
+                    fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 20.sp,
-                    color = darkBlue
+                    color = fitnessBlueDark
                 )
+
+                Spacer(Modifier.height(16.dp))
+
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    MetricItem("Tốc độ", "%.2f km/h".format(speed), darkBlue)
-                    MetricItem("Quãng đường", "%.2f m".format(distance), darkBlue)
-                    MetricItem(
+                    StatItem("Quãng đường", "${"%.2f".format(distance / 1000)} km")
+                    StatItem(
                         "Thời gian",
-                        "%02d:%02d:%02d".format(
-                            runningTime / 3600, (runningTime % 3600) / 60, runningTime % 60
-                        ),
-                        darkBlue
+                        "%02d:%02d".format(runningTime / 60, runningTime % 60)
                     )
+                }
+                Row(
+                    Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    StatItem("Tốc độ TB", "${"%.1f".format(avgSpeed)} km/h")
+                    StatItem("Pace TB", avgPace)
+                }
+                Row(
+                    Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    StatItem("Max tốc độ", "${"%.1f".format(maxSpeed)} km/h")
+                    StatItem("Calo", "${caloriesBurned.toInt()} kcal")
                 }
             }
         }
 
-        // AI Coach suggestion
-        if (coachSuggest != null) {
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 8.dp)
-                    .clip(RoundedCornerShape(16.dp))
-                    .shadow(2.dp, RoundedCornerShape(16.dp)),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFFE3F2FD))
-            ) {
-                Text(
-                    "Gợi ý buổi tiếp theo",
-                    modifier = Modifier.padding(top = 12.dp, start = 16.dp, end = 16.dp),
-                    fontWeight = FontWeight.Bold
-                )
-                Text(coachSuggest!!, modifier = Modifier.padding(16.dp))
-            }
-        }
+        Spacer(Modifier.height(20.dp))
 
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Buttons row
+        // Buttons
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 8.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly
+            Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            ActionButton(
-                "Bắt đầu",
-                Icons.Default.DirectionsRun,
-                !isRunning,
-                { startLocationUpdates() },
-                primaryBlue,
-                Color.White,
-                Modifier.weight(1f)
-            )
-            Spacer(Modifier.width(8.dp))
-            ActionButton(
-                "Tạm dừng",
-                Icons.Default.Pause,
-                isRunning,
-                { stopLocationUpdates() },
-                primaryBlue,
-                Color.White,
-                Modifier.weight(1f)
-            )
-            Spacer(Modifier.width(8.dp))
-            ActionButton(
-                "Reset",
-                Icons.Default.Refresh,
-                true,
-                {
-                    stopLocationUpdates()
-                    distance = 0f
-                    speed = 0f
-                    runningTime = 0L
-                    pathPoints = emptyList()
-                    speedHistory.clear()
-                },
-                accentColor,
-                darkBlue,
-                Modifier.weight(1f)
-            )
-            Spacer(Modifier.width(8.dp))
-            ActionButton(
-                "Lưu",
-                Icons.Default.Save,
-                !isRunning && runningTime > 0L,
-                { showSaveDialog = true },
-                primaryBlue,
-                Color.White,
-                Modifier.weight(1f)
-            )
+            ControlButton(
+                text = "Bắt đầu",
+                icon = Icons.Default.DirectionsRun,
+                enabled = !isRunning
+            ) {
+                requestLocationPermissionAndStart()
+            }
+
+            ControlButton(
+                text = "Dừng",
+                icon = Icons.Default.Pause,
+                enabled = isRunning
+            ) {
+                stopTracking()
+            }
+
+            ControlButton(
+                text = "Lưu & Tư vấn",
+                icon = Icons.Default.Save,
+                enabled = !isRunning && runningTime > 0
+            ) {
+                showSaveDialog = true
+            }
         }
     }
 
-    // RPE + goal dialog
+    // Dialog xác nhận lưu
     if (showSaveDialog) {
         AlertDialog(
             onDismissRequest = { showSaveDialog = false },
+            title = {
+                Text("Hoàn thành buổi chạy!", fontWeight = FontWeight.Bold)
+            },
+            text = { Text("Lưu kết quả và nhận gợi ý từ AI Coach?") },
             confirmButton = {
                 TextButton(onClick = {
-                    val pace = avgPaceMinPerKm(distance, runningTime)
-                    coachSuggest = AiCoach.recommendNextRun(pace, rpe, goal)
-                    saveRun()
+                    saveAndSendToCoach()
                     showSaveDialog = false
-                }) { Text("Lưu") }
+                }) {
+                    Text("Lưu & Tư vấn AI", color = fitnessBlue)
+                }
             },
             dismissButton = {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    // Nút Tư vấn AI (chuyển sang CoachAdviceScreen)
-                    ElevatedButton(
-                        onClick = {
-                            showSaveDialog = false
-                            navController.navigate("coach") // 👈 giờ hợp lệ vì có navController
-                        },
-                        colors = ButtonDefaults.elevatedButtonColors(
-                            containerColor = Color(0xFF0EA5E9),
-                            contentColor = Color.White
-                        ),
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.DirectionsRun,
-                            contentDescription = null,
-                            modifier = Modifier.size(18.dp)
-                        )
-                        Spacer(Modifier.width(8.dp))
-                        Text("Tư vấn AI")
-                    }
-
-                    TextButton(onClick = { showSaveDialog = false }) {
-                        Text("Hủy", color = Color.Gray)
-                    }
+                TextButton(onClick = { showSaveDialog = false }) {
+                    Text("Hủy")
                 }
-            },
-            title = {
-                Text(
-                    "Đánh giá buổi chạy",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp
-                )
-            },
-            text = {
-                Column {
-                    Text("RPE (1 = rất dễ, 10 = rất mệt)", fontWeight = FontWeight.SemiBold)
-                    Slider(
-                        value = rpe.toFloat(),
-                        onValueChange = { rpe = it.toInt().coerceIn(1, 10) },
-                        steps = 8,
-                        valueRange = 1f..10f,
-                        colors = SliderDefaults.colors(
-                            thumbColor = Color(0xFF0EA5E9),
-                            activeTrackColor = Color(0xFF0EA5E9)
-                        )
-                    )
-                    Spacer(Modifier.height(8.dp))
-                    Text("Mục tiêu", fontWeight = FontWeight.SemiBold)
-                    DropdownGoal(goal) { goal = it }
-                    Spacer(Modifier.height(12.dp))
-                    HorizontalDivider() // Material3
-                    Spacer(Modifier.height(8.dp))
-                    Text(
-                        "Bạn có thể nhấn “Tư vấn AI” để nhận gợi ý buổi tập kế tiếp chi tiết hơn.",
-                        color = Color(0xFF475569),
-                        fontSize = 13.sp
-                    )
-                }
-            },
-            shape = RoundedCornerShape(20.dp),
-            containerColor = Color(0xFFFDFDFE)
-        )
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun DropdownGoal(current: String, onPick: (String) -> Unit) {
-    val items = listOf("Giảm cân", "5K", "10K", "21K")
-    var expanded by remember { mutableStateOf(false) }
-
-    ExposedDropdownMenuBox(
-        expanded = expanded,
-        onExpandedChange = { expanded = !expanded }
-    ) {
-        OutlinedTextField(
-            readOnly = true,
-            value = current,
-            onValueChange = {},
-            label = { Text("Mục tiêu") },
-            modifier = Modifier
-                .menuAnchor()
-                .fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp)
-        )
-        ExposedDropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false }
-        ) {
-            items.forEach {
-                DropdownMenuItem(
-                    text = { Text(it) },
-                    onClick = {
-                        expanded = false
-                        onPick(it)
-                    }
-                )
             }
-        }
+        )
     }
 }
 
 @Composable
-fun MetricItem(label: String, value: String, color: Color) {
+fun StatItem(label: String, value: String) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(label, color = color, fontSize = 14.sp)
-        Text(value, color = color, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+        Text(label, fontSize = 13.sp, color = Color.Gray)
+        Text(value, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = fitnessBlueDark)
     }
 }
 
 @Composable
-fun ActionButton(
+fun ControlButton(
     text: String,
-    icon: ImageVector,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
     enabled: Boolean,
-    onClick: () -> Unit,
-    containerColor: Color,
-    contentColor: Color,
-    modifier: Modifier = Modifier
+    onClick: () -> Unit
 ) {
     val scale = remember { Animatable(1f) }
+
     LaunchedEffect(enabled) {
         if (enabled) {
-            scale.animateTo(1.1f, tween(200))
+            scale.animateTo(1.15f, tween(200))
             scale.animateTo(1f, tween(200))
         }
     }
+
     Button(
         onClick = onClick,
         enabled = enabled,
-        modifier = modifier
+        colors = ButtonDefaults.buttonColors(
+            containerColor = if (enabled) fitnessBlue else Color.LightGray
+        ),
+        shape = RoundedCornerShape(16.dp),
+        modifier = Modifier
             .height(56.dp)
-            .graphicsLayer {
-                scaleX = scale.value
+            .graphicsLayer(
+                scaleX = scale.value,
                 scaleY = scale.value
-            }
-            .clip(RoundedCornerShape(12.dp)),
-        colors = ButtonDefaults.buttonColors(containerColor, contentColor)
+            )
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(icon, contentDescription = null, modifier = Modifier.size(20.dp))
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(text, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-        }
+        Icon(icon, contentDescription = null, tint = Color.White)
+        Spacer(Modifier.width(8.dp))
+        Text(text, color = Color.White, fontWeight = FontWeight.SemiBold)
     }
 }

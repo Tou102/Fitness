@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.kotlin.serialization)
     kotlin("kapt")
 }
 
@@ -19,20 +20,20 @@ android {
         versionName = "1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        // --- Đọc local.properties để lấy API key ---
+        // Đọc file local.properties
         val localProps = Properties().apply {
             val file = rootProject.file("local.properties")
             if (file.exists()) file.inputStream().use { load(it) }
         }
 
-        val ninjasApiKey: String = localProps.getProperty("NINJAS_API_KEY")
-            ?: System.getenv("NINJAS_API_KEY")
-            ?: ""
-
-        // --- Đưa vào BuildConfig ---
-        buildConfigField("String", "NINJAS_API_KEY", "\"$ninjasApiKey\"")
-        buildConfigField("String", "NINJAS_BASE_URL", "\"https://api.api-ninjas.com/\"")
+        // Lấy GEMINI_API_KEY từ local.properties
+        buildConfigField(
+            type = "String",
+            name = "GEMINI_API_KEY",
+            value = "\"${localProps["GEMINI_API_KEY"]}\""
+        )
     }
+
 
     buildTypes {
         release {
@@ -49,7 +50,9 @@ android {
         targetCompatibility = JavaVersion.VERSION_11
     }
 
-    kotlinOptions { jvmTarget = "11" }
+    kotlinOptions {
+        jvmTarget = "11"
+    }
 
     buildFeatures {
         compose = true
@@ -58,23 +61,33 @@ android {
 }
 
 dependencies {
-    // --- Networking ---
-    implementation("com.squareup.retrofit2:retrofit:2.11.0")
-    implementation("com.squareup.retrofit2:converter-moshi:2.11.0")
-    implementation("com.squareup.moshi:moshi-kotlin:1.15.1") // Thêm dòng này để Moshi hoạt động đúng
+
+    // ---------------------------------------
+    // 🔥 OpenAI API (chat + phân tích ảnh)
+    // ---------------------------------------
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
+    implementation("com.google.code.gson:gson:2.10.1")
+    implementation("pl.droidsonroids.gif:android-gif-drawable:1.2.29")
+// Room compiler – DÒNG NÀY BẮT BUỘC PHẢI CÓ!
+    kapt("androidx.room:room-compiler:2.6.1")
+    // Kotlin Serialization
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.1")
+    implementation(libs.retrofit.kotlinx.serialization.converter)
 
-    // --- Room ---
+    // MLKit Pose Detection
+    implementation("com.google.mlkit:pose-detection:17.0.0")
+    implementation("com.google.mlkit:pose-detection-accurate:17.0.0")
+    implementation("com.google.mlkit:vision-common:17.3.0")
+
+    // Room
     implementation("androidx.room:room-runtime:2.6.1")
     implementation("androidx.room:room-ktx:2.6.1")
-    implementation(libs.firebase.crashlytics.buildtools)
-    kapt("androidx.room:room-compiler:2.6.1")
 
-    // --- Coroutines ---
+    // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
-
-    // --- Compose (BOM) ---
+    implementation("com.google.ai.client.generativeai:generativeai:0.9.0")
+    // Compose
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
@@ -85,38 +98,40 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.navigation.runtime.android)
-    implementation("com.google.code.gson:gson:2.11.0")
-    // --- Icons ---
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
+
+
+
+    // Icons
     implementation("androidx.compose.material:material-icons-extended")
 
-    // --- Coil (ảnh) ---
+
+    // Coil
     implementation("io.coil-kt:coil-compose:2.7.0")
     implementation("io.coil-kt:coil-gif:2.7.0")
 
-    // --- Google Maps ---
+    // Google Maps
     implementation("com.google.android.gms:play-services-location:21.0.1")
     implementation("com.google.android.gms:play-services-maps:18.0.2")
     implementation("com.google.maps.android:maps-compose:2.13.0")
 
-    // --- Accompanist ---
+    // Accompanist
     implementation("com.google.accompanist:accompanist-pager:0.31.5-beta")
     implementation("com.google.accompanist:accompanist-pager-indicators:0.31.5-beta")
     implementation("com.google.accompanist:accompanist-permissions:0.31.2-alpha")
 
-    // --- CameraX ---
-    implementation("androidx.camera:camera-camera2:1.4.2")
-    implementation("androidx.camera:camera-lifecycle:1.4.2")
-    implementation("androidx.camera:camera-view:1.4.2")
+    // CameraX ✔
+    val camerax_version = "1.3.4"
+    implementation("androidx.camera:camera-core:$camerax_version")
+    implementation("androidx.camera:camera-camera2:$camerax_version")
+    implementation("androidx.camera:camera-lifecycle:$camerax_version")
+    implementation("androidx.camera:camera-view:$camerax_version")
 
-    // --- ML Kit Pose Detection ---
-    implementation("com.google.mlkit:pose-detection:18.0.0-beta5")
-    implementation("com.google.mlkit:pose-detection-accurate:18.0.0-beta5")
+    // ❌ KHÔNG tồn tại → bỏ
+    // implementation("androidx.camera:camera-mlkit-vision:$camerax_version")
 
-    // --- Lottie / GIF ---
-    implementation("com.airbnb.android:lottie-compose:6.0.0")
-    implementation("pl.droidsonroids.gif:android-gif-drawable:1.2.29")
-
-    // --- Test ---
+    // Testing
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
