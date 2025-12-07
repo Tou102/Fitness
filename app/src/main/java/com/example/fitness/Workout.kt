@@ -2,21 +2,51 @@ package com.example.fitness
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -28,25 +58,36 @@ import androidx.navigation.NavHostController
 import com.example.fitness.dao.WorkoutSessionDao
 import com.example.fitness.db.AppDatabase
 import com.example.fitness.entity.WorkoutSession
+import com.example.fitness.viewModel.ExerciseViewModel
 import com.example.fitness.viewModel.WorkoutViewModel
 import kotlinx.coroutines.launch
+import java.util.Calendar
 
-// --- ViewModel Factory để tạo WorkoutViewModel ---
+// ======================== LỊCH TẬP CỐ ĐỊNH 7 NGÀY ========================
+private val weeklySchedule = mapOf(
+    1 to "FULLBODY",   // Thứ 2
+    2 to "ABS",        // Thứ 3
+    3 to "CHEST",      // Thứ 4
+    4 to "ARM",        // Thứ 5
+    5 to "FULLBODY",   // Thứ 6
+    6 to "ABS",        // Thứ 7
+    7 to "CHEST"       // Chủ nhật
+)
 
+// ======================== ViewModel Factory ========================
 class WorkoutViewModelFactory(
     private val workoutDao: WorkoutSessionDao
 ) : androidx.lifecycle.ViewModelProvider.Factory {
+    @Suppress("UNCHECKED_CAST")
     override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(WorkoutViewModel::class.java)) {
-            @Suppress("UNCHECKED_CAST")
             return WorkoutViewModel(workoutDao) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }
 }
 
-// --- WorkoutScreenRoute: Khởi tạo ViewModel và gọi WorkoutScreen ---
-
+// ======================== Route ========================
 @Composable
 fun WorkoutScreenRoute(
     navController: NavHostController,
@@ -67,8 +108,7 @@ fun WorkoutScreenRoute(
     )
 }
 
-// --- WorkoutScreen chính hiển thị toàn bộ danh sách bài tập ---
-
+// ======================== WorkoutScreen chính ========================
 @Composable
 fun WorkoutScreen(
     navController: NavHostController,
@@ -89,7 +129,7 @@ fun WorkoutScreen(
         WorkoutItem("FULLBODY", R.drawable.fullbody, "workoutDetails/FULLBODY"),
         WorkoutItem("ABS", R.drawable.abs, "workoutDetails/ABS"),
         WorkoutItem("CHEST", R.drawable.chest, "workoutDetails/CHEST"),
-        WorkoutItem("ARM", R.drawable.arm, "workoutDetails/ARM"),
+        WorkoutItem("ARM", R.drawable.arm, "workoutDetails/ARM")
     )
 
     Box(
@@ -122,8 +162,7 @@ fun WorkoutScreen(
     }
 }
 
-// --- Nội dung danh sách bài tập ---
-
+// ======================== Danh sách bài tập ========================
 @Composable
 fun WorkoutListContent(
     navController: NavHostController,
@@ -139,60 +178,79 @@ fun WorkoutListContent(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = "Tất cả bài tập tuần",
+            text = "Lịch tập trong tuần",
             style = MaterialTheme.typography.headlineLarge.copy(
                 color = Color.White,
                 fontWeight = FontWeight.ExtraBold,
                 fontSize = 36.sp,
-                shadow = androidx.compose.ui.graphics.Shadow(
-                    color = Color.Black.copy(alpha = 0.3f),
-                    offset = androidx.compose.ui.geometry.Offset(2f, 2f),
-                    blurRadius = 4f
+                shadow = Shadow(
+                    color = Color.Black.copy(alpha = 0.4f),
+                    offset = androidx.compose.ui.geometry.Offset(3f, 3f),
+                    blurRadius = 6f
                 )
             ),
-            modifier = Modifier.padding(bottom = 24.dp)
+            modifier = Modifier.padding(vertical = 32.dp)
         )
 
+        val calendar = Calendar.getInstance()
+        val dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK)
+        val today = if (dayOfWeek == Calendar.SUNDAY) 7 else dayOfWeek - 1
+
+        val todayName = when (today) {
+            1 -> "Thứ Hai"
+            2 -> "Thứ Ba"
+            3 -> "Thứ Tư"
+            4 -> "Thứ Năm"
+            5 -> "Thứ Sáu"
+            6 -> "Thứ Bảy"
+            7 -> "Chủ Nhật"
+            else -> "Hôm nay"
+        }
+
         LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            contentPadding = PaddingValues(bottom = 16.dp)
+            verticalArrangement = Arrangement.spacedBy(18.dp),
+            contentPadding = PaddingValues(bottom = 100.dp)
         ) {
             items(workoutItems) { item ->
-                val calendar = java.util.Calendar.getInstance()
-                val dayOfWeek = calendar.get(java.util.Calendar.DAY_OF_WEEK)
-                val currentDay = if (dayOfWeek == java.util.Calendar.SUNDAY) 7 else dayOfWeek - 1
+                val allowedDays = weeklySchedule.filterValues { it == item.title }.keys
+                val isTodayAllowed = today in allowedDays
 
                 val isCheckedIn = weeklySessions.any {
-                    it.userId == userId && it.day == currentDay && it.workoutType == item.title && it.completed
+                    it.userId == userId && it.day == today && it.workoutType == item.title && it.completed
                 }
+
                 WorkoutCard(
                     item = item,
                     navController = navController,
-                    isVisible = true,
+                    isTodayAllowed = isTodayAllowed,
                     isCheckedIn = isCheckedIn,
+                    todayName = todayName,
                     isAdmin = isAdmin,
                     onCheckIn = {
-                        workoutViewModel.checkInWorkout(userId, currentDay, item.title)
-                        onShowSnackbar("Đã check-in bài tập ${item.title}!")
+                        workoutViewModel.checkInWorkout(userId, today, item.title)
+                        onShowSnackbar("Check-in ${item.title} thành công!")
+                    },
+                    onLockedClick = {
+                        onShowSnackbar("Hôm nay $todayName chưa phải ngày tập ${item.title} đâu nhé!")
                     }
                 )
             }
-
         }
     }
 }
 
-// --- Card bài tập ---
-
+// ======================== Card bài tập ========================
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WorkoutCard(
     item: WorkoutItem,
     navController: NavHostController,
-    isVisible: Boolean,
+    isTodayAllowed: Boolean,
     isCheckedIn: Boolean,
+    todayName: String,
     isAdmin: Boolean,
-    onCheckIn: () -> Unit
+    onCheckIn: () -> Unit,
+    onLockedClick: () -> Unit
 ) {
     var isPressed by remember { mutableStateOf(false) }
     val scale by animateFloatAsState(
@@ -203,92 +261,128 @@ fun WorkoutCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .height(220.dp)
+            .height(230.dp)
             .scale(scale)
-            .shadow(8.dp, RoundedCornerShape(16.dp))
-            .clip(RoundedCornerShape(16.dp))
+            .shadow(12.dp, RoundedCornerShape(20.dp))
+            .clip(RoundedCornerShape(20.dp))
             .clickable(
+                enabled = isTodayAllowed || isAdmin,
                 onClick = {
                     isPressed = true
-                    navController.navigate(item.route + "?isAdmin=$isAdmin")
-                },
-                onClickLabel = "Select ${item.title}"
+                    if (isTodayAllowed || isAdmin) {
+                        navController.navigate("${item.route}?isAdmin=$isAdmin")
+                    } else {
+                        onLockedClick()
+                    }
+                }
             )
-            .padding(4.dp),
+            .alpha(if (isTodayAllowed || isAdmin) 1f else 0.5f),
         colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = if (isTodayAllowed) 10.dp else 3.dp)
     ) {
         Box {
-            androidx.compose.foundation.Image(
+            Image(
                 painter = painterResource(id = item.imageResId),
                 contentDescription = item.title,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize()
             )
 
+            if (!isTodayAllowed && !isAdmin) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.65f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Icon(
+                            imageVector = Icons.Default.Lock,
+                            contentDescription = "Khóa",
+                            tint = Color.White,
+                            modifier = Modifier.size(80.dp)
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text(
+                            text = "Chưa tới ngày tập",
+                            color = Color.White,
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+                }
+            }
+
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(
                         Brush.verticalGradient(
-                            colors = listOf(
-                                Color.Black.copy(alpha = 0.1f),
-                                Color.Black.copy(alpha = 0.5f)
-                            )
+                            colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.7f))
                         )
                     )
             )
 
-            Text(
-                text = item.title,
-                color = Color.White,
-                style = MaterialTheme.typography.titleLarge.copy(
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 24.sp,
-                    shadow = androidx.compose.ui.graphics.Shadow(
-                        color = Color.Black.copy(alpha = 0.5f),
-                        offset = androidx.compose.ui.geometry.Offset(1f, 1f),
-                        blurRadius = 2f
-                    )
-                ),
+            Column(
                 modifier = Modifier
                     .align(Alignment.BottomStart)
-                    .padding(16.dp)
-            )
-
-            Button(
-                onClick = { if (!isCheckedIn) onCheckIn() },
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(16.dp)
-                    .height(36.dp),
-                colors = if (isCheckedIn) {
-                    ButtonDefaults.buttonColors(containerColor = Color.Gray)
-                } else {
-                    ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50))
-                },
-                enabled = !isCheckedIn
+                    .padding(20.dp)
             ) {
                 Text(
-                    text = if (isCheckedIn) "Đã tập" else "Check-in",
-                    color = Color.White
+                    text = item.title,
+                    color = Color.White,
+                    fontSize = 28.sp,
+                    fontWeight = FontWeight.ExtraBold
+                )
+                if (isTodayAllowed || isAdmin) {
+                    Text(
+                        text = if (isTodayAllowed) "Hôm nay được tập" else "Admin mode",
+                        color = Color.White.copy(alpha = 0.9f),
+                        fontSize = 15.sp
+                    )
+                }
+            }
+
+            Button(
+                onClick = { if (isTodayAllowed && !isCheckedIn) onCheckIn() },
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(20.dp)
+                    .height(42.dp),
+                enabled = isTodayAllowed && !isCheckedIn,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = if (isCheckedIn) Color(0xFF607D8B) else Color(0xFF4CAF50),
+                    disabledContainerColor = Color(0xFFB0BEC5)
+                )
+            ) {
+                Text(
+                    text = when {
+                        isCheckedIn -> "Đã tập"
+                        isTodayAllowed -> "Check-in"
+                        else -> "Chưa tới ngày"
+                    },
+                    color = Color.White,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Medium
                 )
             }
         }
     }
 }
 
-// --- Data class bài tập ---
+// ======================== Data class ========================
+data class WorkoutItem(
+    val title: String,
+    val imageResId: Int,
+    val route: String
+)
 
-data class WorkoutItem(val title: String, val imageResId: Int, val route: String)
-
-// --- Các màn hình chi tiết bài tập ---
-
+// ======================== Các màn hình chi tiết ========================
 @Composable
 fun FullBody(
     navController: NavHostController,
-    exerciseViewModel: com.example.fitness.viewModel.ExerciseViewModel,
-    isAdmin: Boolean
+    exerciseViewModel: ExerciseViewModel,
+    isAdmin: Boolean = false
 ) {
     ExerciseGroupScreen(
         navController = navController,
@@ -311,8 +405,8 @@ fun FullBody(
 @Composable
 fun Abs(
     navController: NavHostController,
-    exerciseViewModel: com.example.fitness.viewModel.ExerciseViewModel,
-    isAdmin: Boolean
+    exerciseViewModel: ExerciseViewModel,
+    isAdmin: Boolean = false
 ) {
     ExerciseGroupScreen(
         navController = navController,
@@ -333,8 +427,8 @@ fun Abs(
 @Composable
 fun Chest(
     navController: NavHostController,
-    exerciseViewModel: com.example.fitness.viewModel.ExerciseViewModel,
-    isAdmin: Boolean
+    exerciseViewModel: ExerciseViewModel,
+    isAdmin: Boolean = false
 ) {
     ExerciseGroupScreen(
         navController = navController,
@@ -355,8 +449,8 @@ fun Chest(
 @Composable
 fun Arm(
     navController: NavHostController,
-    exerciseViewModel: com.example.fitness.viewModel.ExerciseViewModel,
-    isAdmin: Boolean
+    exerciseViewModel: ExerciseViewModel,
+    isAdmin: Boolean = false
 ) {
     ExerciseGroupScreen(
         navController = navController,

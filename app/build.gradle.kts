@@ -56,7 +56,9 @@ android {
 
     buildFeatures {
         compose = true
+        viewBinding = true
         buildConfig = true
+
     }
 }
 
@@ -69,11 +71,14 @@ dependencies {
     implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
     implementation("com.google.code.gson:gson:2.10.1")
     implementation("pl.droidsonroids.gif:android-gif-drawable:1.2.29")
+    implementation(libs.androidx.games.activity)
+    implementation(libs.androidx.cardview)
 // Room compiler – DÒNG NÀY BẮT BUỘC PHẢI CÓ!
     kapt("androidx.room:room-compiler:2.6.1")
     // Kotlin Serialization
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.1")
     implementation(libs.retrofit.kotlinx.serialization.converter)
+    implementation("androidx.recyclerview:recyclerview:1.4.0-alpha02")
 
     // MLKit Pose Detection
     implementation("com.google.mlkit:pose-detection:17.0.0")

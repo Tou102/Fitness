@@ -24,6 +24,8 @@ generativeai = "0.9.0"
 poseDetection = "17.0.0"
 poseDetectionCommon = "17.0.0"
 visionCommon = "17.3.0"
+gamesActivity = "4.0.0"
+cardview = "1.0.0"
 
 [libraries]
 accompanist-glide = { module = "com.google.accompanist:accompanist-glide", version.ref = "accompanistGlide" }
@@ -59,6 +61,8 @@ generativeai = { group = "com.google.ai.client.generativeai", name = "generative
 pose-detection = { group = "com.google.mlkit", name = "pose-detection", version.ref = "poseDetection" }
 pose-detection-common = { group = "com.google.mlkit", name = "pose-detection-common", version.ref = "poseDetectionCommon" }
 vision-common = { group = "com.google.mlkit", name = "vision-common", version.ref = "visionCommon" }
+androidx-games-activity = { group = "androidx.games", name = "games-activity", version.ref = "gamesActivity" }
+androidx-cardview = { group = "androidx.cardview", name = "cardview", version.ref = "cardview" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

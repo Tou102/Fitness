@@ -1,5 +1,5 @@
 package com.example.fitness.viewModel
 
 object Constants {
-    val apiKey = "AIzaSyCsVhCn1nN13t366uOLnHbgwPeaM7PoAgU"
+    val apiKey = "AIzaSyDy8Yu05eyri5sjG3gGdoMH3gTZf_tBorY"
 }
