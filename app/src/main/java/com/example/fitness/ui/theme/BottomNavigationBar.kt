@@ -28,7 +28,8 @@ fun BottomNavigationBar(navController: NavController) {
         BottomNavItem.Workout,
         BottomNavItem.Nutrition,
         BottomNavItem.Running,
-        BottomNavItem.Profile
+        BottomNavItem.Profile,
+
     )
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()

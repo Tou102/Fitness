@@ -35,6 +35,7 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.LocalDrink
 import androidx.compose.material.icons.filled.Menu
+
 import androidx.compose.material.icons.filled.Whatshot
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -56,6 +57,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+
+import androidx.compose.material.icons.filled.Quiz
+import androidx.compose.material.icons.filled.VideogameAsset
+import androidx.compose.runtime.*
+
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -271,6 +277,7 @@ fun ProfileScreen(
 
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Button(
+
                             onClick = { navController.navigate("water") },
                             modifier = Modifier.size(70.dp).clip(RoundedCornerShape(16.dp)),
                             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1A56DB)),
@@ -280,6 +287,31 @@ fun ProfileScreen(
                         }
                         Spacer(Modifier.height(8.dp))
                         Text("Nước", color = Color.White, fontSize = 16.sp)
+
+                            onClick = { navController.navigate("Minigame") },
+                            modifier = Modifier
+                                .size(70.dp)
+                                .clip(RoundedCornerShape(16.dp)),
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1A56DB)),
+                            contentPadding = PaddingValues(0.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.VideogameAsset,
+                                contentDescription = "Minigame",
+                                tint = Color.White,
+                                modifier = Modifier.size(36.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "Mini Game",
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontSize = 16.sp,
+                                color = Color.White
+                            ),
+                            textAlign = TextAlign.Center
+                        )
+
                     }
 
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {

@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.lifecycle.viewModelScope
+import com.example.fitness.entity.AppRepository
 import com.example.fitness.viewModel.UserViewModel
 import kotlinx.coroutines.launch
 
@@ -108,6 +109,9 @@ fun LoginScreen(navController: NavHostController, userViewModel: UserViewModel) 
                 userViewModel.viewModelScope.launch {
                     val user = userViewModel.loginUser(username, password)
                     if (user != null) {
+                        // Báo cho Repository biết Username nào vừa đăng nhập
+                        com.example.fitness.entity.AppRepository.currentUserKey = user.username
+                        AppRepository.loadUserData()
                         userViewModel.loadUserByUsername(user.username)
                         Toast.makeText(context, "Đăng nhập thành công", Toast.LENGTH_SHORT).show()
                         navController.navigate("gioithieu") // Navigate to the main screen

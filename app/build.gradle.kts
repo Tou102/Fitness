@@ -63,16 +63,21 @@ android {
 }
 
 dependencies {
-
+    // Thư viện Coil chính cho Compose
+    implementation("io.coil-kt:coil-compose:2.6.0")
+    // Module mở rộng để hỗ trợ giải mã GIF
+    implementation("io.coil-kt:coil-gif:2.6.0")
     // ---------------------------------------
     // 🔥 OpenAI API (chat + phân tích ảnh)
     // ---------------------------------------
+
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
     implementation("com.google.code.gson:gson:2.10.1")
     implementation("pl.droidsonroids.gif:android-gif-drawable:1.2.29")
     implementation(libs.androidx.games.activity)
     implementation(libs.androidx.cardview)
+    implementation(libs.androidx.benchmark.traceprocessor.android)
 // Room compiler – DÒNG NÀY BẮT BUỘC PHẢI CÓ!
     kapt("androidx.room:room-compiler:2.6.1")
     // Kotlin Serialization
@@ -126,16 +131,9 @@ dependencies {
     implementation("com.google.accompanist:accompanist-pager-indicators:0.31.5-beta")
     implementation("com.google.accompanist:accompanist-permissions:0.31.2-alpha")
 
-    // CameraX ✔
-    val camerax_version = "1.3.4"
-    implementation("androidx.camera:camera-core:$camerax_version")
-    implementation("androidx.camera:camera-camera2:$camerax_version")
-    implementation("androidx.camera:camera-lifecycle:$camerax_version")
-    implementation("androidx.camera:camera-view:$camerax_version")
 
-    // ❌ KHÔNG tồn tại → bỏ
-    // implementation("androidx.camera:camera-mlkit-vision:$camerax_version")
 
+    implementation("com.pierfrancescosoffritti.androidyoutubeplayer:core:12.1.0")
     // Testing
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
