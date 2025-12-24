@@ -17,7 +17,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navArgument
-
+import com.example.fitness.Abs
+import com.example.fitness.Arm
 import com.example.fitness.BmiScreen
 import com.example.fitness.CaloriesDailySummaryScreen
 
@@ -27,9 +28,17 @@ import com.example.fitness.LoginScreen
 import com.example.fitness.MainWorkoutScreen
 import com.example.fitness.PlanDetailScreen
 import com.example.fitness.RegisterScreen
+
 import com.example.fitness.WaterIntakeScreen
 
 import com.example.fitness.WorkoutSessionScreen
+
+import com.example.fitness.MiniGameScreen
+import com.example.fitness.QuizHomeScreen
+import com.example.fitness.QuizPlayScreen
+import com.example.fitness.WorkoutScreen
+import com.example.fitness.WorkoutType
+
 import com.example.fitness.db.AppDatabase
 import com.example.fitness.intro2.BodyFocusScreen
 import com.example.fitness.intro2.ChonCanNang
@@ -71,21 +80,24 @@ fun AppNavigation(
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
+
     val noBottomBarRoutes = listOf("login", "register", "gioithieu","intro2","muctieu","cannang", "workout_session/{planId}")
+
+
 
     Scaffold(
         bottomBar = {
-            if (currentRoute !in noBottomBarRoutes) {
-                BottomNavigationBar(navController = navController)
+            if (currentRoute !in noBottom) {
+                BottomNavigationBar(navController)
             }
         }
     ) { paddingValues ->
-
         NavHost(
             navController = navController,
-            startDestination = "login",
+            startDestination = "profile",
             modifier = Modifier.padding(paddingValues)
         ) {
+
             composable("login") { LoginScreen(navController, userViewModel) }
             composable("register") { RegisterScreen(navController, userViewModel) }
             composable("gioithieu") { FitnessIntroPager(navController) }
@@ -140,23 +152,34 @@ fun AppNavigation(
                     onExit = {
                         navController.popBackStack() // Quay về danh sách khi tập xong
                     }
+
+    
                 )
             }
 
-            composable("coach?runSummary={runSummary}") { backStackEntry ->
-                val summary = backStackEntry.arguments?.getString("runSummary") ?: ""
-                val chatViewModel: ChatViewModel = viewModel()
+            // NHẬN DỮ LIỆU TỪ RUNNING → GỬI VÀO CHAT
+            composable("coach?runSummary={runSummary}") { entry ->
+                val summary = entry.arguments?.getString("runSummary") ?: ""
+                val chatViewModel: ChatViewModel = viewModel()   // Lấy đúng instance
+
                 LaunchedEffect(summary) {
-                    if (summary.isNotBlank()) chatViewModel.sendMessage("Kết quả chạy của tôi:\n$summary")
+                    if (summary.isNotBlank()) {
+                        chatViewModel.sendMessage("Kết quả chạy của tôi:\n$summary")
+                    }
                 }
                 ChatScreen()
             }
-            composable("coach") { ChatScreen() }
 
             composable("running") {
-                RunningTrackerScreen(navController, caloriesViewModel, onNavigateToSave = { navController.navigate("calories") })
+                RunningTrackerScreen(
+                    navController = navController,
+                    caloriesViewModel = caloriesViewModel,
+                    onNavigateToSave = { navController.navigate("calories") }
+                )
             }
-            composable("calories") { CaloriesScreen(navController, caloriesViewModel) }
+            composable("calories") {
+                CaloriesScreen(navController = navController, caloriesViewModel = caloriesViewModel)
+            }
             composable("calories_daily_summary") {
                 CaloriesDailySummaryScreen(
                     records = caloriesViewModel.records.collectAsState().value,
@@ -164,10 +187,28 @@ fun AppNavigation(
                     onBack = { navController.popBackStack() }
                 )
             }
-            composable("water") { WaterIntakeScreen(navController, db) }
-            composable("profile") {
-                ProfileScreen(navController, userViewModel, workoutViewModel, currentUserId)
+            composable("workoutDetails/FULLBODY") {
+                FullBody(navController, exerciseViewModel, isAdmin)
             }
+            composable("workoutDetails/ABS") {
+                Abs(navController, exerciseViewModel, isAdmin)
+            }
+            composable("workoutDetails/CHEST") {
+                Chest(navController, exerciseViewModel, isAdmin)
+            }
+            composable("workoutDetails/ARM") {
+                Arm(navController, exerciseViewModel, isAdmin)
+            }
+            composable("minigame") {
+                MiniGameScreen(navController = navController, db = db)
+            }
+            composable(route = "quiz_home") {
+                QuizHomeScreen(navController = navController)
+            }
+            composable(
+                route = "quiz_play/{workout}/{level}"
+            ) { backStackEntry ->
+
 
             // SỬA HOÀN CHỈNH – KHÔNG CÒN LỖI ĐỎ NỮA
             val workoutTypes = listOf("FULLBODY", "ABS", "CHEST", "ARM")
@@ -186,6 +227,8 @@ fun AppNavigation(
 //                    }
 //                }
 //            }
+
+
         }
     }
 }
