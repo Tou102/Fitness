@@ -16,6 +16,8 @@ import androidx.compose.material.icons.filled.Calculate
 import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.LocalDrink
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Quiz
+import androidx.compose.material.icons.filled.VideogameAsset
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
@@ -268,7 +270,7 @@ fun ProfileScreen(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Button(
-                            onClick = { navController.navigate("water") },
+                            onClick = { navController.navigate("Minigame") },
                             modifier = Modifier
                                 .size(70.dp)
                                 .clip(RoundedCornerShape(16.dp)),
@@ -276,15 +278,15 @@ fun ProfileScreen(
                             contentPadding = PaddingValues(0.dp)
                         ) {
                             Icon(
-                                imageVector = Icons.Default.LocalDrink,
-                                contentDescription = "Nước",
+                                imageVector = Icons.Default.VideogameAsset,
+                                contentDescription = "Minigame",
                                 tint = Color.White,
                                 modifier = Modifier.size(36.dp)
                             )
                         }
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "Nước",
+                            text = "Mini Game",
                             style = MaterialTheme.typography.titleMedium.copy(
                                 fontSize = 16.sp,
                                 color = Color.White
