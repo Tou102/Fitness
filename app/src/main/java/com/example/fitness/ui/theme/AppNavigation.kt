@@ -23,8 +23,11 @@ import com.example.fitness.Chest
 import com.example.fitness.FullBody
 import com.example.fitness.LoginScreen
 import com.example.fitness.RegisterScreen
-import com.example.fitness.WaterIntakeScreen
+import com.example.fitness.MiniGameScreen
+import com.example.fitness.QuizHomeScreen
+import com.example.fitness.QuizPlayScreen
 import com.example.fitness.WorkoutScreen
+import com.example.fitness.WorkoutType
 import com.example.fitness.db.AppDatabase
 import com.example.fitness.repository.CaloriesRepository
 import com.example.fitness.ui.screens.ChatScreen
@@ -75,7 +78,7 @@ fun AppNavigation(
     ) { paddingValues ->
         NavHost(
             navController = navController,
-            startDestination = "login",
+            startDestination = "profile",
             modifier = Modifier.padding(paddingValues)
         ) {
             composable("login") {
@@ -141,9 +144,32 @@ fun AppNavigation(
             composable("workoutDetails/ARM") {
                 Arm(navController, exerciseViewModel, isAdmin)
             }
-            composable("water") {
-                WaterIntakeScreen(navController = navController, db = db)
+            composable("minigame") {
+                MiniGameScreen(navController = navController, db = db)
             }
+            composable(route = "quiz_home") {
+                QuizHomeScreen(navController = navController)
+            }
+            composable(
+                route = "quiz_play/{workout}/{level}"
+            ) { backStackEntry ->
+
+                val workoutName = backStackEntry.arguments?.getString("workout")
+                    ?: WorkoutType.FULLBODY.name
+                val workout = WorkoutType.valueOf(workoutName)
+
+                val level = backStackEntry.arguments
+                    ?.getString("level")
+                    ?.toIntOrNull() ?: 1
+
+                QuizPlayScreen(
+                    navController = navController,
+                    workout = workout,
+                    level = level
+                )
+            }
+
+
             composable("profile") {
                 ProfileScreen(
                     navController = navController,
