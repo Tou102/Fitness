@@ -15,9 +15,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 
-// ======================== MÀU CHỦ ĐẠO CỦA APP FITNESS ========================
 private val LightColors = lightColorScheme(
-    primary = Color(0xFF2196F3),      // Xanh dương đẹp – đúng với background bạn đang dùng
+    primary = Color(0xFF2196F3),
     primaryContainer = Color(0xFFBBDEFB),
     secondary = Color(0xFF03DAC6),
     secondaryContainer = Color(0xFF87FFEA),
@@ -32,7 +31,7 @@ private val LightColors = lightColorScheme(
 )
 
 private val DarkColors = darkColorScheme(
-    primary = Color(0xFF2196F3),
+    primary = Color(0xFF3399FF),           // Sáng hơn chút trong dark mode
     primaryContainer = Color(0xFF1976D2),
     secondary = Color(0xFF03DAC6),
     background = Color(0xFF121212),
@@ -43,12 +42,8 @@ private val DarkColors = darkColorScheme(
     onSurface = Color(0xFFE0E0E0)
 )
 
-// ======================== TYPOGRAPHY – FONT CHỮ ========================
-private val AppTypography = Typography(
-    // Bạn có thể tùy chỉnh font ở đây sau, hiện tại dùng mặc định Material 3
-)
+private val AppTypography = Typography()
 
-// ======================== SHAPES – BO GÓC ========================
 private val AppShapes = Shapes(
     extraSmall = RoundedCornerShape(8.dp),
     small = RoundedCornerShape(12.dp),
@@ -57,11 +52,10 @@ private val AppShapes = Shapes(
     extraLarge = RoundedCornerShape(32.dp)
 )
 
-// ======================== THEME CHÍNH ========================
 @Composable
 fun FitnessTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    dynamicColor: Boolean = true, // Tắt nếu không muốn dùng dynamic color
+    dynamicColor: Boolean = true,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
