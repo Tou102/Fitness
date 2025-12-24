@@ -21,7 +21,8 @@ fun BottomNavigationBar(navController: NavController) {
         BottomNavItem.Workout,
         BottomNavItem.Nutrition,
         BottomNavItem.Running,
-        BottomNavItem.Profile
+        BottomNavItem.Profile,
+
     )
 
     // Nhận route hiện tại từ NavController

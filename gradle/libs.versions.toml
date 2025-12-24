@@ -26,6 +26,7 @@ poseDetectionCommon = "17.0.0"
 visionCommon = "17.3.0"
 gamesActivity = "4.0.0"
 cardview = "1.0.0"
+benchmarkTraceprocessorAndroid = "1.4.1"
 
 [libraries]
 accompanist-glide = { module = "com.google.accompanist:accompanist-glide", version.ref = "accompanistGlide" }
@@ -63,6 +64,7 @@ pose-detection-common = { group = "com.google.mlkit", name = "pose-detection-com
 vision-common = { group = "com.google.mlkit", name = "vision-common", version.ref = "visionCommon" }
 androidx-games-activity = { group = "androidx.games", name = "games-activity", version.ref = "gamesActivity" }
 androidx-cardview = { group = "androidx.cardview", name = "cardview", version.ref = "cardview" }
+androidx-benchmark-traceprocessor-android = { group = "androidx.benchmark", name = "benchmark-traceprocessor-android", version.ref = "benchmarkTraceprocessorAndroid" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

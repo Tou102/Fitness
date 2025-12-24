@@ -10,6 +10,7 @@ import com.example.fitness.ui.theme.AppNavigation
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        com.example.fitness.entity.AppRepository.initialize(applicationContext)
         setContent {
             MaterialTheme {
                 val navController = rememberNavController()
