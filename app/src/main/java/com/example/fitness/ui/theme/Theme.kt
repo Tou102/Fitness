@@ -1,43 +1,67 @@
 package com.example.fitness.ui.theme
 
-import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Shapes
+import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 
-private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
-)
-
-private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40
-
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
+// ======================== MÀU CHỦ ĐẠO CỦA APP FITNESS ========================
+private val LightColors = lightColorScheme(
+    primary = Color(0xFF2196F3),      // Xanh dương đẹp – đúng với background bạn đang dùng
+    primaryContainer = Color(0xFFBBDEFB),
+    secondary = Color(0xFF03DAC6),
+    secondaryContainer = Color(0xFF87FFEA),
+    background = Color(0xFFF5F9FF),
+    surface = Color.White,
     onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
+    onSecondary = Color.Black,
+    onBackground = Color(0xFF1A1A1A),
+    onSurface = Color(0xFF1A1A1A),
+    error = Color(0xFFB00020),
+    outline = Color(0xFF757575)
 )
 
+private val DarkColors = darkColorScheme(
+    primary = Color(0xFF2196F3),
+    primaryContainer = Color(0xFF1976D2),
+    secondary = Color(0xFF03DAC6),
+    background = Color(0xFF121212),
+    surface = Color(0xFF1E1E1E),
+    onPrimary = Color.White,
+    onSecondary = Color.Black,
+    onBackground = Color(0xFFE0E0E0),
+    onSurface = Color(0xFFE0E0E0)
+)
+
+// ======================== TYPOGRAPHY – FONT CHỮ ========================
+private val AppTypography = Typography(
+    // Bạn có thể tùy chỉnh font ở đây sau, hiện tại dùng mặc định Material 3
+)
+
+// ======================== SHAPES – BO GÓC ========================
+private val AppShapes = Shapes(
+    extraSmall = RoundedCornerShape(8.dp),
+    small = RoundedCornerShape(12.dp),
+    medium = RoundedCornerShape(16.dp),
+    large = RoundedCornerShape(24.dp),
+    extraLarge = RoundedCornerShape(32.dp)
+)
+
+// ======================== THEME CHÍNH ========================
 @Composable
 fun FitnessTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
+    dynamicColor: Boolean = true, // Tắt nếu không muốn dùng dynamic color
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
@@ -45,14 +69,14 @@ fun FitnessTheme(
             val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
-
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
+        darkTheme -> DarkColors
+        else -> LightColors
     }
 
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = Typography,
+        typography = AppTypography,
+        shapes = AppShapes,
         content = content
     )
 }

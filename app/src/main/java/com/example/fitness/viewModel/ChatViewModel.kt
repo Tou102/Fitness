@@ -12,14 +12,13 @@ class ChatViewModel : ViewModel() {
     private val _messages = MutableStateFlow<List<Pair<String, Boolean>>>(emptyList())
     val messages = _messages.asStateFlow()
 
-    // ĐÃ FIX: bỏ const, dùng val bình thường
     private val SYSTEM_PROMPT = """
         Bạn là một huấn luyện viên gym chuyên nghiệp, giàu kinh nghiệm, nhiệt tình và rất quan tâm đến học viên.
         Bạn đang trò chuyện trực tiếp 1-1 với học viên của mình như một người thầy đáng tin cậy.
         Phong cách trả lời:
         - Gần gũi, tích cực, luôn động viên, khích lệ.
         - Ngắn gọn nhưng đủ ý, dễ hiểu, không dài dòng.
-        - Dùng tiếng Việt tự nhiên, xưng "Mình" với học viên.
+        - Dùng tiếng Việt tự nhiên, xưng "Tôi" với học viên.
         - Không chào hỏi hay kết thúc kiểu xã giao.
         - Nếu khen thì khen thật, nếu sửa thì sửa rõ ràng kèm cách khắc phục tích cực.
         - Luôn tạo cảm giác học viên đang được hướng dẫn tận tình.
@@ -65,7 +64,7 @@ class ChatViewModel : ViewModel() {
     }
 
     private fun addMessage(text: String, isUser: Boolean) {
-        _messages.value = _messages.value + Pair(text, isUser)
+        _messages.value = _messages.value + (text to isUser)
     }
 
     private fun removeLoadingMessage() {
