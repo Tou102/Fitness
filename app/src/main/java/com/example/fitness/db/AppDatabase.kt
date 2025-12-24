@@ -6,16 +6,18 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.example.fitness.dao.CaloriesRecordDao
-import com.example.fitness.dao.ExerciseDao
+
 import com.example.fitness.dao.FoodDao
 import com.example.fitness.dao.NutritionDetailDao
+import com.example.fitness.dao.UserExerciseDao
 import com.example.fitness.dao.WaterIntakeDao
 import com.example.fitness.dao.WorkoutSessionDao
 import com.example.fitness.entity.CaloriesRecordEntity
-import com.example.fitness.entity.Exercise
+
 import com.example.fitness.entity.FoodItem
 import com.example.fitness.entity.NutritionDetail
 import com.example.fitness.entity.User
+import com.example.fitness.entity.UserExercise
 import com.example.fitness.entity.WaterIntakeRecordEntity
 import com.example.fitness.entity.WorkoutSession
 import kotlinx.coroutines.CoroutineScope
@@ -27,24 +29,25 @@ import java.text.Normalizer
 @Database(
     entities = [
         User::class,
-        Exercise::class,
         NutritionDetail::class,
         CaloriesRecordEntity::class,
         WaterIntakeRecordEntity::class,
         WorkoutSession::class,
-        FoodItem::class                 // <- có trường nameKey trong entity
+        FoodItem::class,                 // <- có trường nameKey trong entity
+        UserExercise::class
     ],
-    version = 9,                        // bump để recreate & seed lại
+    version = 14,                        // bump để recreate & seed lại
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
-    abstract fun exerciseDao(): ExerciseDao
+
     abstract fun userDao(): com.example.fitness.dao.UserDao
     abstract fun caloriesRecordDao(): CaloriesRecordDao
     abstract fun waterIntakeDao(): WaterIntakeDao
     abstract fun workoutSessionDao(): WorkoutSessionDao
     abstract fun NutritionDetailDao(): NutritionDetailDao
     abstract fun foodDao(): FoodDao
+    abstract fun userExerciseDao(): UserExerciseDao
 
     companion object {
         @Volatile private var INSTANCE: AppDatabase? = null

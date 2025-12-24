@@ -54,7 +54,7 @@ fun FitnessIntroPager(navController: NavController) {
         ) {
             TextButton(
                 onClick = {
-                    navController.navigate("workout") {
+                    navController.navigate("home") {
                         popUpTo("introPager") { inclusive = true }
                     }
                 }
@@ -110,7 +110,7 @@ fun FitnessIntroPager(navController: NavController) {
         Button(
             onClick = {
                 if (pagerState.currentPage == pages.size - 1) {
-                    navController.navigate("workout") {
+                    navController.navigate("home") {
                         popUpTo("introPager") { inclusive = true }
                     }
                 } else {
