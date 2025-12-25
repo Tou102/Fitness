@@ -1,6 +1,7 @@
 package com.example.fitness.ui.theme
 
 import CaloriesScreen
+import ProfileScreen
 
 import android.content.Context
 import androidx.compose.foundation.layout.padding
@@ -36,7 +37,7 @@ import com.example.fitness.intro2.GoalScreen
 import com.example.fitness.repository.CaloriesRepository
 import com.example.fitness.ui.screens.ChatScreen
 import com.example.fitness.ui.screens.FitnessIntroPager
-import com.example.fitness.ui.screens.ProfileScreen
+
 import com.example.fitness.ui.screens.RunningTrackerScreen
 import com.example.fitness.viewModel.CaloriesViewModel
 import com.example.fitness.viewModel.ChatViewModel
