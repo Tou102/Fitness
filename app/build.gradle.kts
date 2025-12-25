@@ -10,7 +10,7 @@ plugins {
 
 android {
     namespace = "com.example.fitness"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.example.fitness"
@@ -111,7 +111,9 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
 
-
+    implementation ("androidx.compose.ui:ui:1.7.0" )         // or latest stable
+    implementation ("androidx.compose.material3:material3:1.3.0") // if using Material3
+    implementation ("androidx.compose.ui:ui-tooling-preview:1.7.0")
 
     // Icons
     implementation("androidx.compose.material:material-icons-extended")
@@ -134,6 +136,7 @@ dependencies {
 
 
     implementation("com.pierfrancescosoffritti.androidyoutubeplayer:core:12.1.0")
+
     // Testing
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

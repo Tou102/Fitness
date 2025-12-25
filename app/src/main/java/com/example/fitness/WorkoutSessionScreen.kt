@@ -1,22 +1,52 @@
 package com.example.fitness
 
 import android.os.Build
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.SkipNext
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -34,16 +64,34 @@ import com.example.fitness.entity.AppRepository
 import com.example.fitness.entity.Exercisee
 import com.example.fitness.entity.MeasureUnit
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
-// --- 1. ĐỊNH NGHĨA CÁC GIAI ĐOẠN ---
-enum class WorkoutPhase {
-    GET_READY,  // Đếm ngược 3-2-1
-    EXERCISE,   // Đang tập
-    REST,       // Nghỉ ngơi giữa hiệp
-    COMPLETED   // Hoàn thành
+// Phase giữ nguyên
+enum class WorkoutPhase { GET_READY, EXERCISE, REST, COMPLETED }
+
+// Màu sắc xanh dương đồng bộ toàn app
+private val PrimaryBlue = Color(0xFF0EA5E9)     // Xanh dương neon chính
+private val AccentBlue  = Color(0xFF0284C7)     // Xanh đậm highlight
+private val GradientStart = Color(0xFFF0F9FF)   // Nền gradient đầu
+private val GradientEnd   = Color(0xFFE0F2FE)   // Nền gradient cuối (xanh nhạt)
+
+// Gradient background composable
+@Composable
+fun FitnessGradientBackground(content: @Composable () -> Unit) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(GradientStart, GradientEnd)
+                )
+            )
+    ) {
+        content()
+    }
 }
 
-// --- 2. MÀN HÌNH CHÍNH (QUẢN LÝ LUỒNG) ---
+// Main Screen
 @Composable
 fun WorkoutSessionScreen(
     planId: Int,
@@ -51,47 +99,45 @@ fun WorkoutSessionScreen(
 ) {
     val context = LocalContext.current
 
-    // 1. TẠO BỘ LOAD ẢNH GIF DÙNG CHUNG (TỐI ƯU BỘ NHỚ)
     val imageLoader = remember {
         ImageLoader.Builder(context)
             .components {
-                if (Build.VERSION.SDK_INT >= 28) {
-                    add(ImageDecoderDecoder.Factory())
-                } else {
-                    add(GifDecoder.Factory())
-                }
+                if (Build.VERSION.SDK_INT >= 28) add(ImageDecoderDecoder.Factory())
+                else add(GifDecoder.Factory())
             }
-            // Quan trọng: Tự động xóa bộ nhớ cache khi thiếu RAM
             .crossfade(true)
             .build()
     }
 
-    // Lấy danh sách bài tập
     val exerciseList = remember { AppRepository.getExercisesForPlan(planId) }
 
-    // State quản lý
-    var currentIndex by remember { mutableIntStateOf(0) }
-    var currentPhase by remember { mutableStateOf(WorkoutPhase.GET_READY) }
-
     if (exerciseList.isEmpty()) {
-        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text("Gói tập này chưa có bài tập nào!")
-            Button(onClick = onExit) { Text("Quay lại") }
+        FitnessGradientBackground {
+            Box(Modifier.fillMaxSize(), Alignment.Center) {
+                Text(
+                    "Chưa có bài tập nào trong gói này!",
+                    color = PrimaryBlue,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(Modifier.height(24.dp))
+                Button(onClick = onExit, colors = ButtonDefaults.buttonColors(PrimaryBlue)) {
+                    Text("Quay lại", color = Color.White)
+                }
+            }
         }
         return
     }
 
-    // ĐIỀU HƯỚNG UI
-    when (currentPhase) {
-        WorkoutPhase.GET_READY -> {
-            GetReadyView(
-                onFinish = { currentPhase = WorkoutPhase.EXERCISE }
-            )
-        }
-        WorkoutPhase.EXERCISE -> {
-            ExerciseView(
+    var currentIndex by remember { mutableIntStateOf(0) }
+    var currentPhase by remember { mutableStateOf(WorkoutPhase.GET_READY) }
+
+    FitnessGradientBackground {
+        when (currentPhase) {
+            WorkoutPhase.GET_READY -> GetReadyView { currentPhase = WorkoutPhase.EXERCISE }
+            WorkoutPhase.EXERCISE -> ExerciseView(
                 exercise = exerciseList[currentIndex],
-                imageLoader = imageLoader, // Truyền bộ load xuống
+                imageLoader = imageLoader,
                 onDone = {
                     if (currentIndex >= exerciseList.size - 1) {
                         currentPhase = WorkoutPhase.COMPLETED
@@ -100,237 +146,294 @@ fun WorkoutSessionScreen(
                     }
                 }
             )
-        }
-        WorkoutPhase.REST -> {
-            val nextExercise = exerciseList.getOrNull(currentIndex + 1)
-            RestView(
-                nextExercise = nextExercise,
-                imageLoader = imageLoader, // Truyền bộ load xuống
+            WorkoutPhase.REST -> RestView(
+                nextExercise = exerciseList.getOrNull(currentIndex + 1),
+                imageLoader = imageLoader,
                 onSkip = {
                     currentIndex++
                     currentPhase = WorkoutPhase.EXERCISE
                 }
             )
-        }
-        WorkoutPhase.COMPLETED -> {
-            CompletedView(onExit = onExit)
+            WorkoutPhase.COMPLETED -> CompletedView(onExit)
         }
     }
 }
 
-// --- 3. UI: CHUẨN BỊ ---
+// 1. Get Ready - Energetic countdown
 @Composable
 fun GetReadyView(onFinish: () -> Unit) {
     var timeLeft by remember { mutableIntStateOf(5) }
+    val scale by animateFloatAsState(
+        targetValue = if (timeLeft > 0) 1f else 1.3f,
+        animationSpec = tween(600)
+    )
 
-    LaunchedEffect(key1 = timeLeft) {
+    LaunchedEffect(timeLeft) {
         if (timeLeft > 0) {
             delay(1000L)
             timeLeft--
         } else {
+            delay(600L)
             onFinish()
         }
     }
 
     Column(
-        modifier = Modifier.fillMaxSize().background(Color.White),
+        Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text("SẴN SÀNG", fontSize = 32.sp, fontWeight = FontWeight.Bold, color = Color(0xFF2979FF))
-        Spacer(modifier = Modifier.height(30.dp))
+        Text(
+            "SẴN SÀNG NÀO!",
+            fontSize = 42.sp,
+            fontWeight = FontWeight.Black,
+            color = AccentBlue,
+            letterSpacing = 2.sp
+        )
+        Spacer(Modifier.height(48.dp))
+
         Text(
             text = if (timeLeft > 0) "$timeLeft" else "GO!",
-            fontSize = 120.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color.Black
+            fontSize = 160.sp,
+            fontWeight = FontWeight.ExtraBold,
+            color = Color.White,
+            style = LocalTextStyle.current.copy(
+                brush = Brush.linearGradient(listOf(PrimaryBlue, AccentBlue))
+            ),
+            modifier = Modifier.scale(scale)
         )
     }
 }
 
-// --- 4. UI: ĐANG TẬP (ĐÃ FIX LỖI MEMORY) ---
+// 2. Exercise View - Modern timer + GIF full
 @Composable
 fun ExerciseView(
     exercise: Exercisee,
     imageLoader: ImageLoader,
     onDone: () -> Unit
 ) {
-    val context = LocalContext.current
+    Column(Modifier.fillMaxSize()) {
 
-    Column(modifier = Modifier.fillMaxSize().background(Color.White)) {
-
-        // A. ẢNH GIF (ĐÃ FIX: Bỏ Size.ORIGINAL)
+        // GIF full màn hình trên
         Box(
-            modifier = Modifier
-                .weight(0.45f)
+            Modifier
+                .weight(0.5f)
                 .fillMaxWidth()
-                .background(Color.White),
-            contentAlignment = Alignment.Center
+                .clip(RoundedCornerShape(bottomStart = 40.dp, bottomEnd = 40.dp))
+                .shadow(16.dp)
         ) {
             Image(
                 painter = rememberAsyncImagePainter(
-                    model = ImageRequest.Builder(context)
+                    model = ImageRequest.Builder(LocalContext.current)
                         .data(exercise.imageRes)
                         .crossfade(true)
-                        // .size(Size.ORIGINAL) <--- ĐÃ XÓA DÒNG NÀY ĐỂ TRÁNH CRASH
                         .build(),
                     imageLoader = imageLoader
                 ),
                 contentDescription = null,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp),
-                contentScale = ContentScale.Fit
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
+            )
+            Box(
+                Modifier
+                    .matchParentSize()
+                    .background(Color.Black.copy(alpha = 0.35f))
             )
         }
 
-        // B. THÔNG TIN & ĐỒNG HỒ
         Column(
-            modifier = Modifier
-                .weight(0.55f)
-                .fillMaxWidth()
+            Modifier
+                .weight(0.5f)
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.SpaceBetween
+            verticalArrangement = Arrangement.SpaceEvenly
         ) {
             Text(
-                text = exercise.name,
-                fontSize = 28.sp,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center
+                exercise.name.uppercase(),
+                fontSize = 32.sp,
+                fontWeight = FontWeight.Black,
+                color = PrimaryBlue,
+                textAlign = TextAlign.Center,
+                letterSpacing = 1.5.sp
             )
 
-            // Vòng tròn đếm
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier
-                    .size(200.dp)
-                    .clip(CircleShape)
-                    .background(Color(0xFFE3F2FD))
-            ) {
+            // Circular timer / reps
+            Box(contentAlignment = Alignment.Center, modifier = Modifier.size(220.dp)) {
                 if (exercise.unit == MeasureUnit.TIME) {
                     var timeLeft by remember { mutableIntStateOf(exercise.value) }
                     var isPaused by remember { mutableStateOf(false) }
 
-                    LaunchedEffect(key1 = timeLeft, key2 = isPaused) {
+                    val progress by animateFloatAsState(
+                        targetValue = timeLeft.toFloat() / exercise.value.toFloat(),
+                        animationSpec = tween(800)
+                    )
+
+                    CircularProgressIndicator(
+                        progress = { progress },
+                        modifier = Modifier.size(220.dp),
+                        color = AccentBlue,
+                        trackColor = Color.White.copy(alpha = 0.2f),
+                        strokeWidth = 12.dp
+                    )
+
+                    LaunchedEffect(timeLeft, isPaused) {
                         if (timeLeft > 0 && !isPaused) {
                             delay(1000L)
                             timeLeft--
-                        } else if (timeLeft == 0) {
-                            onDone()
-                        }
+                        } else if (timeLeft == 0) onDone()
                     }
 
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("$timeLeft", fontSize = 70.sp, fontWeight = FontWeight.Bold, color = Color(0xFF2979FF))
-                        Text("Giây", fontSize = 18.sp, color = Color.Gray)
+                        Text(
+                            "$timeLeft",
+                            fontSize = 72.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                        Text("GIÂY", fontSize = 20.sp, color = AccentBlue)
                     }
 
                     IconButton(
                         onClick = { isPaused = !isPaused },
-                        modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 16.dp)
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .offset(y = 80.dp)
                     ) {
                         Icon(
                             if (isPaused) Icons.Default.PlayArrow else Icons.Default.Pause,
-                            contentDescription = "Pause",
-                            tint = Color(0xFF2979FF),
-                            modifier = Modifier.size(32.dp)
+                            null,
+                            tint = AccentBlue,
+                            modifier = Modifier.size(48.dp)
                         )
                     }
                 } else {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("x${exercise.value}", fontSize = 70.sp, fontWeight = FontWeight.Bold, color = Color(0xFF2979FF))
-                        Text("Lần", fontSize = 18.sp, color = Color.Gray)
-                    }
+                    Text(
+                        "x${exercise.value}",
+                        fontSize = 80.sp,
+                        fontWeight = FontWeight.Black,
+                        color = AccentBlue
+                    )
+                    Text("LẦN", fontSize = 22.sp, color = Color.White.copy(alpha = 0.8f))
                 }
             }
 
             Button(
                 onClick = onDone,
-                modifier = Modifier.fillMaxWidth().height(55.dp),
-                shape = RoundedCornerShape(30.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2979FF))
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(64.dp),
+                shape = RoundedCornerShape(32.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+                elevation = ButtonDefaults.buttonElevation(0.dp)
             ) {
-                Icon(Icons.Default.Check, null)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("HOÀN THÀNH", fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Brush.horizontalGradient(listOf(PrimaryBlue, AccentBlue)))
+                        .clip(RoundedCornerShape(32.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Icon(Icons.Default.Check, null, tint = Color.White)
+                        Spacer(Modifier.width(12.dp))
+                        Text("HOÀN THÀNH", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                    }
+                }
             }
         }
     }
 }
 
-// --- 5. UI: NGHỈ NGƠI (ĐÃ FIX LỖI PREVIEW) ---
+// 3. Rest View - Motivational card + gradient
 @Composable
 fun RestView(
     nextExercise: Exercisee?,
     imageLoader: ImageLoader,
     onSkip: () -> Unit
 ) {
-    val context = LocalContext.current
-    var restTime by remember { mutableIntStateOf(15) }
+    var restTime by remember { mutableIntStateOf(30) }
 
-    LaunchedEffect(key1 = restTime) {
+    LaunchedEffect(restTime) {
         if (restTime > 0) {
             delay(1000L)
             restTime--
-        } else {
-            onSkip()
-        }
+        } else onSkip()
     }
 
     Column(
-        modifier = Modifier
+        Modifier
             .fillMaxSize()
-            .background(Color(0xFFF5F5F5))
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(modifier = Modifier.height(40.dp))
-        Text("NGHỈ NGƠI", fontSize = 32.sp, fontWeight = FontWeight.Bold, color = Color(0xFF2979FF))
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(Modifier.height(60.dp))
+
         Text(
-            text = "00:${restTime.toString().padStart(2, '0')}",
-            fontSize = 70.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color.Black
+            "NGHỈ NGƠI",
+            fontSize = 48.sp,
+            fontWeight = FontWeight.Black,
+            color = AccentBlue,
+            letterSpacing = 3.sp
         )
 
-        Spacer(modifier = Modifier.height(40.dp))
+        Spacer(Modifier.height(16.dp))
+
+        Text(
+            "00:${restTime.toString().padStart(2, '0')}",
+            fontSize = 100.sp,
+            fontWeight = FontWeight.ExtraBold,
+            color = PrimaryBlue
+        )
+
+        Spacer(Modifier.height(48.dp))
 
         if (nextExercise != null) {
             Card(
-                colors = CardDefaults.cardColors(containerColor = Color.White),
-                elevation = CardDefaults.cardElevation(4.dp),
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .shadow(12.dp, RoundedCornerShape(24.dp)),
+                colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.15f)),
+                border = BorderStroke(1.dp, AccentBlue.copy(alpha = 0.6f))
             ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text("TIẾP THEO:", fontSize = 14.sp, color = Color.Gray, fontWeight = FontWeight.Bold)
-                    Spacer(modifier = Modifier.height(12.dp))
+                Column(Modifier.padding(20.dp)) {
+                    Text(
+                        "TIẾP THEO",
+                        fontSize = 16.sp,
+                        color = Color.White.copy(alpha = 0.7f),
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(Modifier.height(16.dp))
 
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        // FIX: Dùng Coil load thumbnail nhỏ (size 300) thay vì painterResource load full GIF
                         Image(
                             painter = rememberAsyncImagePainter(
-                                model = ImageRequest.Builder(context)
+                                model = ImageRequest.Builder(LocalContext.current)
                                     .data(nextExercise.imageRes)
-                                    .size(300) // Quan trọng: Giảm tải bộ nhớ
+                                    .size(400)
                                     .build(),
                                 imageLoader = imageLoader
                             ),
                             contentDescription = null,
                             modifier = Modifier
-                                .size(80.dp)
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(Color.LightGray),
+                                .size(100.dp)
+                                .clip(RoundedCornerShape(16.dp)),
                             contentScale = ContentScale.Crop
                         )
-                        Spacer(modifier = Modifier.width(16.dp))
+                        Spacer(Modifier.width(20.dp))
                         Column {
-                            Text(nextExercise.name, fontSize = 20.sp, fontWeight = FontWeight.Bold)
                             Text(
-                                text = if (nextExercise.unit == MeasureUnit.TIME) "${nextExercise.value} giây" else "x${nextExercise.value} lần",
-                                color = Color.Gray,
-                                fontSize = 16.sp
+                                nextExercise.name,
+                                fontSize = 24.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                            Text(
+                                if (nextExercise.unit == MeasureUnit.TIME) "${nextExercise.value} giây" else "x${nextExercise.value} lần",
+                                fontSize = 18.sp,
+                                color = AccentBlue
                             )
                         }
                     }
@@ -338,44 +441,92 @@ fun RestView(
             }
         }
 
-        Spacer(modifier = Modifier.weight(1f))
+        Spacer(Modifier.weight(1f))
 
         Button(
             onClick = onSkip,
-            modifier = Modifier.fillMaxWidth().height(50.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color.White),
-            border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF2979FF)),
-            shape = RoundedCornerShape(25.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(60.dp),
+            shape = RoundedCornerShape(30.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+            border = BorderStroke(2.dp, AccentBlue)
         ) {
-            Text("BỎ QUA NGHỈ NGƠI", color = Color(0xFF2979FF), fontWeight = FontWeight.Bold)
-            Spacer(modifier = Modifier.width(8.dp))
-            Icon(Icons.Default.SkipNext, null, tint = Color(0xFF2979FF))
+            Text(
+                "BỎ QUA NGHỈ",
+                color = AccentBlue,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(Modifier.width(12.dp))
+            Icon(Icons.Default.SkipNext, null, tint = AccentBlue, modifier = Modifier.size(32.dp))
         }
-        Spacer(modifier = Modifier.height(20.dp))
     }
 }
 
-// --- 6. UI: HOÀN THÀNH ---
+// 4. Completed - Celebration vibe
 @Composable
 fun CompletedView(onExit: () -> Unit) {
+    val coroutineScope = rememberCoroutineScope()
+    var showConfetti by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        showConfetti = true
+        coroutineScope.launch { delay(3000L); showConfetti = false }
+    }
+
     Column(
-        modifier = Modifier.fillMaxSize().background(Color.White),
+        Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text("🏆", fontSize = 100.sp)
-        Spacer(modifier = Modifier.height(24.dp))
-        Text("CHÚC MỪNG!", fontSize = 32.sp, fontWeight = FontWeight.Bold, color = Color(0xFF2979FF))
-        Spacer(modifier = Modifier.height(8.dp))
-        Text("Bạn đã hoàn thành bài tập xuất sắc.", fontSize = 16.sp, color = Color.Gray)
-        Spacer(modifier = Modifier.height(48.dp))
+        if (showConfetti) {
+            Text("🎉🏆", fontSize = 120.sp) // Fallback confetti
+        }
+
+        Text(
+            "HOÀN THÀNH XUẤT SẮC!",
+            fontSize = 40.sp,
+            fontWeight = FontWeight.Black,
+            color = AccentBlue,
+            textAlign = TextAlign.Center,
+            letterSpacing = 2.sp
+        )
+
+        Spacer(Modifier.height(32.dp))
+
+        Icon(
+            painter = painterResource(id = android.R.drawable.star_big_on), // Thay bằng trophy nếu có
+            contentDescription = null,
+            tint = AccentBlue,
+            modifier = Modifier.size(140.dp)
+        )
+
+        Spacer(Modifier.height(48.dp))
+
         Button(
             onClick = onExit,
-            modifier = Modifier.width(220.dp).height(55.dp),
-            shape = RoundedCornerShape(30.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2979FF))
+            modifier = Modifier
+                .width(280.dp)
+                .height(70.dp),
+            shape = RoundedCornerShape(35.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+            elevation = ButtonDefaults.buttonElevation(0.dp)
         ) {
-            Text("VỀ TRANG CHỦ", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Brush.horizontalGradient(listOf(PrimaryBlue, AccentBlue)))
+                    .clip(RoundedCornerShape(35.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    "VỀ TRANG CHỦ",
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
+            }
         }
     }
 }
