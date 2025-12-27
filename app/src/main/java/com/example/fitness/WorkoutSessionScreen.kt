@@ -485,7 +485,7 @@ fun CompletedView(onExit: () -> Unit) {
         }
 
         Text(
-            "HOÀN THÀNH XUẤT SẮC!",
+            "HOÀN THÀNH!",
             fontSize = 40.sp,
             fontWeight = FontWeight.Black,
             color = AccentBlue,
