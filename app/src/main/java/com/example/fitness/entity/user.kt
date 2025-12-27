@@ -1,4 +1,4 @@
-package com.example.fitness.entity
+    package com.example.fitness.entity
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey

@@ -85,10 +85,7 @@ dependencies {
     implementation(libs.retrofit.kotlinx.serialization.converter)
     implementation("androidx.recyclerview:recyclerview:1.4.0-alpha02")
 
-    // MLKit Pose Detection
-    implementation("com.google.mlkit:pose-detection:17.0.0")
-    implementation("com.google.mlkit:pose-detection-accurate:17.0.0")
-    implementation("com.google.mlkit:vision-common:17.3.0")
+
 
     // Room
     implementation("androidx.room:room-runtime:2.6.1")
@@ -136,6 +133,18 @@ dependencies {
 
 
     implementation("com.pierfrancescosoffritti.androidyoutubeplayer:core:12.1.0")
+
+
+    //
+    implementation("com.google.mediapipe:tasks-vision:0.10.14")
+    // CAMERAX (Chuẩn cú pháp Kotlin DSL)
+    val cameraxVersion = "1.3.0"
+    implementation("androidx.camera:camera-core:$cameraxVersion")
+    implementation("androidx.camera:camera-camera2:$cameraxVersion")
+    implementation("androidx.camera:camera-lifecycle:$cameraxVersion")
+    implementation("androidx.camera:camera-view:$cameraxVersion")
+
+
 
     // Testing
     testImplementation(libs.junit)
