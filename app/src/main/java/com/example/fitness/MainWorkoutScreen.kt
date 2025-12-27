@@ -24,7 +24,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material.icons.filled.Videocam
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -65,13 +64,13 @@ data class WorkoutPlan(
 
 // Mock data giữ nguyên
 val allWorkoutPlans = listOf(
-    WorkoutPlan(1, "Bụng Dễ", 10, 5, 1, BodyPart.BUNG, R.drawable.abs1),
-    WorkoutPlan(2, "Bụng Trung bình", 15, 5, 2, BodyPart.BUNG, R.drawable.abs2),
-    WorkoutPlan(3, "Bụng Nâng cao", 15, 5, 3, BodyPart.BUNG, R.drawable.abs3),
-    WorkoutPlan(4, "Cánh tay Dễ", 10, 5, 1, BodyPart.TAY, R.drawable.arm),
+    WorkoutPlan(1, "Bụng Người bắt đầu", 20, 16, 1, BodyPart.BUNG, R.drawable.abs1),
+    WorkoutPlan(2, "Bụng Trung bình", 29, 21, 2, BodyPart.BUNG, R.drawable.abs2),
+    WorkoutPlan(3, "Bụng Nâng cao", 36, 21, 3, BodyPart.BUNG, R.drawable.abs3),
+    WorkoutPlan(4, "Cánh tay Người bắt đầu", 15, 12, 1, BodyPart.TAY, R.drawable.arm),
     WorkoutPlan(5, "Cơ bắp tay Trung bình", 25, 18, 2, BodyPart.TAY, R.drawable.hitdat1),
-    WorkoutPlan(6, "Ngực Dễ", 20, 15, 2, BodyPart.NGUC, R.drawable.chest1),
-    WorkoutPlan(7, "Chân Dễ", 30, 20, 2, BodyPart.CHAN, R.drawable.leg1)
+    WorkoutPlan(6, "Ngực nở Người bắt đầu", 20, 15, 2, BodyPart.NGUC, R.drawable.chest1),
+    WorkoutPlan(7, "Chân Người bắt đầu", 30, 20, 2, BodyPart.CHAN, R.drawable.leg1)
 )
 
 // Màu sắc xanh dương đồng bộ
@@ -81,8 +80,7 @@ private val SurfaceStart = Color(0xFFF0F9FF)
 private val SurfaceEnd  = Color(0xFFE0F2FE)
 private val TextSecondary = Color(0xFF6B7280)
 @Composable
-fun MainWorkoutScreen(navController: NavHostController,
-                      onCameraClick: () -> Unit) {
+fun MainWorkoutScreen(navController: NavHostController) {
     var selectedPart by remember { mutableStateOf(BodyPart.BUNG) }
     val filteredList = allWorkoutPlans.filter { it.part == selectedPart }
 
@@ -100,38 +98,15 @@ fun MainWorkoutScreen(navController: NavHostController,
                 .fillMaxSize()
                 .padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 16.dp, bottom = 20.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween // Đẩy 2 bên ra xa
-            ) {
-                // 1. Tiêu đề
-                Text(
-                    text = "Cơ thể tập trung",
-                    fontSize = 26.sp,
-                    fontWeight = FontWeight.Black,
-                    color = PrimaryBlue,
-                    letterSpacing = 0.5.sp
-                )
-
-                // 2. Nút Camera
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(PrimaryBlue.copy(alpha = 0.1f)) // Nền xanh nhạt
-                        .clickable { onCameraClick() } // Gọi hàm mở camera
-                        .padding(10.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Videocam, // <--- Dùng icon có sẵn ở đây
-                        contentDescription = "AI Camera",
-                        tint = PrimaryBlue,
-                        modifier = Modifier.size(28.dp)
-                    )
-                }
-            }
+            // Header
+            Text(
+                text = "Cơ thể tập trung",
+                fontSize = 26.sp,
+                fontWeight = FontWeight.Black,
+                color = PrimaryBlue,
+                letterSpacing = 0.5.sp,
+                modifier = Modifier.padding(top = 16.dp, bottom = 20.dp)
+            )
 
             // Tabs hiện đại
             BodyPartTabs(selectedPart = selectedPart, onSelect = { selectedPart = it })
