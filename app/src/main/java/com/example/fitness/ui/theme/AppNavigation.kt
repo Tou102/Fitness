@@ -1,11 +1,13 @@
 package com.example.fitness.ui.theme
 
-import CaloriesScreen
-import ProfileScreen
 
+
+import CaloriesScreen
 import android.content.Context
+import android.os.Build
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -30,6 +32,9 @@ import com.example.fitness.QuizPlayScreen
 import com.example.fitness.RegisterScreen
 import com.example.fitness.WorkoutSessionScreen
 import com.example.fitness.WorkoutType
+import com.example.fitness.camera.AIWorkoutScreen
+import com.example.fitness.camera.DifficultyLevel
+import com.example.fitness.camera.LevelScreen
 import com.example.fitness.db.AppDatabase
 import com.example.fitness.intro2.BodyFocusScreen
 import com.example.fitness.intro2.ChonCanNang
@@ -37,6 +42,7 @@ import com.example.fitness.intro2.GoalScreen
 import com.example.fitness.repository.CaloriesRepository
 import com.example.fitness.ui.screens.ChatScreen
 import com.example.fitness.ui.screens.FitnessIntroPager
+import com.example.fitness.ui.screens.ProfileScreen
 
 import com.example.fitness.ui.screens.RunningTrackerScreen
 import com.example.fitness.viewModel.CaloriesViewModel
@@ -74,7 +80,9 @@ fun AppNavigation(
         "intro2",
         "muctieu",
         "cannang",
-        "workout_session/{planId}"
+        "workout_session/{planId}",
+        "ai_workout/{levelName}",
+        "history"
     )
 
     Scaffold(
@@ -99,8 +107,44 @@ fun AppNavigation(
             composable("cannang") { ChonCanNang(navController) }
 
             // Main screens
-            composable("home") { MainWorkoutScreen(navController) }
+            composable("home") {
+                MainWorkoutScreen(
+                    navController = navController,
+                    onCameraClick = {
+                        // Thay vì vào thẳng camera, ta chuyển đến màn chọn Level trước
+                        navController.navigate("ai_level_select")
+                    }
+                )
+            }
 
+            // 2. Thêm màn hình Chọn Level (Mới)
+            composable("ai_level_select") {
+                LevelScreen(
+                    onLevelSelected = { level ->
+                        // Khi người dùng chọn level (Dễ/Vừa/Khó)
+                        // Ta chuyển sang màn hình Camera và gửi kèm level đó đi
+                        navController.navigate("ai_workout/${level.name}")
+                    }
+                )
+            }
+
+            // 3. Màn hình Camera AI (Nhận Level từ màn hình trước)
+            composable(
+                route = "ai_workout/{levelName}",
+                arguments = listOf(navArgument("levelName") { type = NavType.StringType })
+            ) { backStackEntry ->
+                // Lấy level từ đường dẫn, nếu lỗi thì mặc định là EASY
+                val levelName = backStackEntry.arguments?.getString("levelName") ?: "EASY"
+                val level = try {
+                    DifficultyLevel.valueOf(levelName)
+                } catch (e: Exception) { DifficultyLevel.EASY }
+
+                // Gọi màn hình AI Workout (đã tạo ở bước trước)
+                AIWorkoutScreen(
+                    navController = navController,
+                    level = level
+                )
+            }
             // Plan & Exercise
             composable(
                 route = "plan_detail/{planId}",
@@ -130,14 +174,42 @@ fun AppNavigation(
                 )
             }
 
+            composable("history") {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    com.example.fitness.ui.screens.HistoryScreen(
+                        navController = navController,
+                        workoutViewModel = workoutViewModel,
+                        userId = currentUserId
+                    )
+                } else {
+                    // Fallback nếu máy Android cũ (tùy chọn)
+                    Text("Yêu cầu Android 8.0 trở lên để xem lịch")
+                }
+            }
             composable(
                 route = "workout_session/{planId}",
                 arguments = listOf(navArgument("planId") { type = NavType.IntType })
             ) { backStackEntry ->
                 val planId = backStackEntry.arguments?.getInt("planId") ?: 0
+
+                val startTime = androidx.compose.runtime.saveable.rememberSaveable { System.currentTimeMillis() }
+                val workoutName = when (planId) {
+                    1 -> "Bụng Người bắt đầu"
+                    2 -> "Bụng Trung bình"
+                    3 -> "Bụng Nâng cao"
+                    4 -> "Cánh tay" // Hoặc tên khác tùy menu của bạn
+                    else -> "Bài tập $planId"
+                }
+
                 WorkoutSessionScreen(
                     planId = planId,
-                    onExit = { navController.popBackStack() }
+                    onExit = {
+                        val endTime = System.currentTimeMillis()
+                        val duration = endTime - startTime
+                        // KHI ẤN THOÁT/HOÀN THÀNH -> LƯU TÍCH XANH
+                        // Lưu ý: userId lấy từ biến currentUserId ở đầu hàm AppNavigation
+                        workoutViewModel.markTodayCompleted(currentUserId, workoutName,duration)
+                        navController.popBackStack() }
                 )
             }
 
@@ -146,7 +218,9 @@ fun AppNavigation(
                 RunningTrackerScreen(
                     navController = navController,
                     caloriesViewModel = caloriesViewModel,
-                    onNavigateToSave = { navController.navigate("calories") }
+                    onNavigateToSave = {
+                        workoutViewModel.markTodayCompleted(currentUserId, "Running", 0L)
+                        navController.navigate("calories") }
                 )
             }
 

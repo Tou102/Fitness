@@ -18,6 +18,9 @@ interface WorkoutSessionDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertSession(session: WorkoutSession)
 
+
+    @Query("SELECT * FROM workout_sessions WHERE userId = :userId ORDER BY date DESC")
+    fun getAllSessions(userId: Int): Flow<List<WorkoutSession>>
     // Các hàm khác như updateSession, deleteSession nếu cần
 }
 
