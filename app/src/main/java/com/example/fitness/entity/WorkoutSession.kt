@@ -13,8 +13,6 @@ data class WorkoutSession(
     val day: Int,    // Thường lưu ngày trong tuần (1..7)
     val workoutType: String,
     val completed: Boolean = false,
-    val notes: String? = null,
-
-    val duration: Long = 0
+    val notes: String? = null
 )
 
