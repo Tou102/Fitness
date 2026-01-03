@@ -70,8 +70,13 @@ val allWorkoutPlans = listOf(
     WorkoutPlan(3, "Bụng Nâng cao", 15, 5, 3, BodyPart.BUNG, R.drawable.abs3),
     WorkoutPlan(4, "Cánh tay Dễ", 10, 5, 1, BodyPart.TAY, R.drawable.arm),
     WorkoutPlan(5, "Cơ bắp tay Trung bình", 25, 18, 2, BodyPart.TAY, R.drawable.hitdat1),
-    WorkoutPlan(6, "Ngực Dễ", 20, 15, 2, BodyPart.NGUC, R.drawable.chest1),
-    WorkoutPlan(7, "Chân Dễ", 30, 20, 2, BodyPart.CHAN, R.drawable.leg1)
+    WorkoutPlan(6, "Cơ bắp tay Nâng cao", 25, 18, 3, BodyPart.TAY, R.drawable.hitdat1),
+    WorkoutPlan(7, "Ngực Dễ", 20, 15, 1, BodyPart.NGUC, R.drawable.chest1),
+    WorkoutPlan(8, "Ngực Trung bình", 20, 15, 2, BodyPart.NGUC, R.drawable.chest1),
+    WorkoutPlan(9, "Ngực Nâng cao", 20, 15, 3, BodyPart.NGUC, R.drawable.chest1),
+    WorkoutPlan(10, "Chân Dễ", 30, 20, 1, BodyPart.CHAN, R.drawable.leg1),
+    WorkoutPlan(11, "Chân Trung bình", 30, 20, 2, BodyPart.CHAN, R.drawable.leg1),
+    WorkoutPlan(12, "Chân Nâng cao", 30, 20, 3, BodyPart.CHAN, R.drawable.leg1)
 )
 
 // Màu sắc xanh dương đồng bộ
