@@ -78,6 +78,8 @@ dependencies {
     implementation(libs.androidx.games.activity)
     implementation(libs.androidx.cardview)
     implementation(libs.androidx.benchmark.traceprocessor.android)
+    implementation(libs.androidx.datastore.core.android)
+    implementation(libs.cronet.embedded)
 // Room compiler – DÒNG NÀY BẮT BUỘC PHẢI CÓ!
     kapt("androidx.room:room-compiler:2.6.1")
     // Kotlin Serialization
@@ -111,7 +113,7 @@ dependencies {
     implementation ("androidx.compose.ui:ui:1.7.0" )         // or latest stable
     implementation ("androidx.compose.material3:material3:1.3.0") // if using Material3
     implementation ("androidx.compose.ui:ui-tooling-preview:1.7.0")
-
+    implementation ("androidx.datastore:datastore-preferences:1.1.1")
     // Icons
     implementation("androidx.compose.material:material-icons-extended")
 

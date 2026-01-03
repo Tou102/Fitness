@@ -9,62 +9,131 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+// Palette màu xanh dương fitness hiện đại
+val BluePrimary = Color(0xFF0D47A1)    // Xanh dương đậm
+val BlueLight = Color(0xFF42A5F5)      // Xanh dương sáng (highlight)
+val BlueGradientStart = Color(0xFF1976D2)
+val BlueGradientEnd = Color(0xFF03DAC6) // Teal nhẹ cho gradient năng lượng
+val BackgroundDark = Color(0xFF0A192F) // Nền tối sâu
+val TextWhite = Color.White
+val TextGray = Color(0xFFB0BEC5)
+
 @Composable
 fun LevelScreen(
-    onLevelSelected: (DifficultyLevel) -> Unit // Sự kiện khi người dùng chọn level
+    onLevelSelected: (DifficultyLevel) -> Unit
 ) {
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF121212)) // Màu nền đen ngầu
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(BackgroundDark, Color.Black)
+                )
+            )
     ) {
-        Text(
-            text = "CHỌN MỨC ĐỘ",
-            color = Color.White,
-            fontSize = 32.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(bottom = 40.dp)
-        )
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 32.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            // Tiêu đề lớn, mạnh mẽ
+            Text(
+                text = "CHỌN\nMỨC ĐỘ TẬP",
+                color = TextWhite,
+                fontSize = 40.sp,
+                fontWeight = FontWeight.ExtraBold,
+                textAlign = TextAlign.Center,
+                lineHeight = 48.sp,
+                modifier = Modifier.padding(bottom = 60.dp)
+            )
 
-        // Nút Level 1: EASY
-        LevelButton(text = "MỨC 1 (DỄ)", color = Color.Green) {
-            onLevelSelected(DifficultyLevel.EASY)
-        }
+            // Level 1 - DỄ
+            FitnessLevelButton(
+                text = "MỨC 1",
+                subText = "DỄ - PHÙ HỢP NGƯỜI MỚI",
+                gradientStart = Color(0xFF4CAF50), // Xanh lá nhạt
+                gradientEnd = Color(0xFF8BC34A),
+                onClick = { onLevelSelected(DifficultyLevel.EASY) }
+            )
 
-        Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
-        // Nút Level 2: MEDIUM
-        LevelButton(text = "MỨC 2 (VỪA)", color = Color.Yellow) {
-            onLevelSelected(DifficultyLevel.MEDIUM)
-        }
+            // Level 2 - VỪA
+            FitnessLevelButton(
+                text = "MỨC 2",
+                subText = "VỪA - THỬ THÁCH HƠN",
+                gradientStart = BlueGradientStart,
+                gradientEnd = BlueLight,
+                onClick = { onLevelSelected(DifficultyLevel.MEDIUM) }
+            )
 
-        Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
-        // Nút Level 3: HARD
-        LevelButton(text = "MỨC 3 (KHÓ)", color = Color.Red) {
-            onLevelSelected(DifficultyLevel.HARD)
+            // Level 3 - KHÓ
+            FitnessLevelButton(
+                text = "MỨC 3",
+                subText = "KHÓ - DÀNH CHO PRO",
+                gradientStart = Color(0xFFEF5350), // Đỏ cam
+                gradientEnd = Color(0xFFFF7043),
+                onClick = { onLevelSelected(DifficultyLevel.HARD) }
+            )
         }
     }
 }
 
 @Composable
-fun LevelButton(text: String, color: Color, onClick: () -> Unit) {
+fun FitnessLevelButton(
+    text: String,
+    subText: String,
+    gradientStart: Color,
+    gradientEnd: Color,
+    onClick: () -> Unit
+) {
     Button(
         onClick = onClick,
         modifier = Modifier
             .fillMaxWidth()
-            .height(60.dp),
-        colors = ButtonDefaults.buttonColors(containerColor = color),
-        shape = RoundedCornerShape(12.dp)
+            .height(100.dp),
+        shape = RoundedCornerShape(20.dp),
+        colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+        contentPadding = PaddingValues(0.dp)
     ) {
-        Text(text = text, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    brush = Brush.horizontalGradient(
+                        colors = listOf(gradientStart, gradientEnd)
+                    ),
+                    shape = RoundedCornerShape(20.dp)
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = text,
+                    color = TextWhite,
+                    fontSize = 32.sp,
+                    fontWeight = FontWeight.ExtraBold
+                )
+                Text(
+                    text = subText,
+                    color = TextWhite.copy(alpha = 0.9f),
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Medium
+                )
+            }
+        }
     }
 }

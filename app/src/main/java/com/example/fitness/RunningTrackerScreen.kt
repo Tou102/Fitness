@@ -6,75 +6,47 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.DirectionsRun
+import androidx.compose.material.icons.automirrored.filled.DirectionsRun
+import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.Save
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
+import com.example.fitness.entity.CaloriesRecordEntity
+import com.example.fitness.ui.theme.*
 import com.example.fitness.viewModel.CaloriesViewModel
-import com.google.android.gms.location.LocationCallback
-import com.google.android.gms.location.LocationRequest
-import com.google.android.gms.location.LocationResult
-import com.google.android.gms.location.LocationServices
-import com.google.android.gms.location.Priority
+import com.example.fitness.viewModel.ChallengeViewModel
+import com.google.android.gms.location.*
 import com.google.android.gms.maps.CameraUpdateFactory
-import com.google.android.gms.maps.model.BitmapDescriptorFactory
-import com.google.android.gms.maps.model.CameraPosition
-import com.google.android.gms.maps.model.LatLng
-import com.google.maps.android.compose.GoogleMap
-import com.google.maps.android.compose.MapsComposeExperimentalApi
-import com.google.maps.android.compose.Marker
-import com.google.maps.android.compose.Polyline
-import com.google.maps.android.compose.rememberCameraPositionState
-import com.google.maps.android.compose.rememberMarkerState
+import com.google.android.gms.maps.model.*
+import com.google.maps.android.compose.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.chromium.base.Flag
+import java.util.Calendar
 
-// Màu sắc xanh dương đồng bộ toàn app
-private val PrimaryBlue = Color(0xFF0EA5E9)     // Xanh dương neon chính
-private val AccentBlue  = Color(0xFF0284C7)     // Xanh đậm highlight
-private val SurfaceStart = Color(0xFFF0F9FF)    // Nền gradient đầu
-private val SurfaceEnd  = Color(0xFFE0F2FE)     // Nền gradient cuối (xanh nhạt)
-private val CardBg      = Color.White.copy(alpha = 0.96f)
-private val TextPrimary = Color(0xFF1A1A1A)
+private val PrimaryBlue = Color(0xFF0EA5E9)
+private val AccentBlue = Color(0xFF0284C7)
+private val SurfaceStart = Color(0xFFF0F9FF)
+private val SurfaceEnd = Color(0xFFE0F2FE)
+private val SuccessGreen = Color(0xFF10B981)
 private val TextSecondary = Color(0xFF6B7280)
 
 @OptIn(MapsComposeExperimentalApi::class, ExperimentalMaterial3Api::class)
@@ -82,36 +54,58 @@ private val TextSecondary = Color(0xFF6B7280)
 fun RunningTrackerScreen(
     navController: NavHostController,
     caloriesViewModel: CaloriesViewModel,
-    onNavigateToSave: () -> Unit
+    challengeViewModel: ChallengeViewModel,
+    onNavigateToSave: () -> Unit,
+    isChallengeLoading: Boolean = false
 ) {
     val context = LocalContext.current
     val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
     val scope = rememberCoroutineScope()
 
+    val activeChallenge by challengeViewModel.activeChallenge.collectAsStateWithLifecycle()
+    val todayGoal by challengeViewModel.todayGoal.collectAsStateWithLifecycle()
+    val completedDays by challengeViewModel.completedDays.collectAsStateWithLifecycle()
+
+    var remainingTime by remember { mutableStateOf("") }
+
+    LaunchedEffect(activeChallenge) {
+        while (true) {
+            remainingTime = challengeViewModel.getRemainingTime()
+            delay(60_000L)
+        }
+    }
+
     var isRunning by remember { mutableStateOf(false) }
     var pathPoints by remember { mutableStateOf(listOf<LatLng>()) }
-    var distance by remember { mutableStateOf(0f) }
-    var runningTime by remember { mutableStateOf(0L) }
-    var caloriesBurned by remember { mutableStateOf(0f) }
-    var avgSpeed by remember { mutableStateOf(0f) }
+    var distance by remember { mutableFloatStateOf(0f) }
+    var runningTime by remember { mutableLongStateOf(0L) }
+    var caloriesBurned by remember { mutableFloatStateOf(0f) }
+    var avgSpeed by remember { mutableFloatStateOf(0f) }
     var avgPace by remember { mutableStateOf("--:--'/km") }
-    var maxSpeed by remember { mutableStateOf(0f) }
+    var maxSpeed by remember { mutableFloatStateOf(0f) }
 
     var showSaveDialog by remember { mutableStateOf(false) }
+    var showEndChallengeDialog by remember { mutableStateOf(false) }
 
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(LatLng(21.0285, 105.8542), 15f)
     }
 
+    fun getCurrentDayNumber(startDate: Long, totalDays: Int): Int {
+        val calendar = Calendar.getInstance()
+        val today = calendar.timeInMillis
+        val diff = today - startDate
+        val day = if (diff <= 0) 1 else ((diff / (1000 * 60 * 60 * 24)) + 1).toInt()
+        return day.coerceAtMost(totalDays)
+    }
+
     fun recalculateStats() {
         if (runningTime > 0 && distance > 0) {
             avgSpeed = (distance / 1000f) / (runningTime / 3600f)
-
             val paceMinPerKm = (runningTime / 60f) / (distance / 1000f)
             val min = paceMinPerKm.toInt()
             val sec = ((paceMinPerKm - min) * 60).toInt().coerceAtLeast(0)
             avgPace = "$min:${sec.toString().padStart(2, '0')}'/km"
-
             caloriesBurned = distance * 0.065f
         }
     }
@@ -144,7 +138,6 @@ fun RunningTrackerScreen(
                             val instantSpeed = (dist[0] / timeDiff) * 3.6f
                             if (instantSpeed > maxSpeed) maxSpeed = instantSpeed
                         }
-
                         recalculateStats()
                     }
                 } else {
@@ -165,11 +158,7 @@ fun RunningTrackerScreen(
     }
 
     fun startTracking() {
-        if (ContextCompat.checkSelfPermission(
-                context,
-                android.Manifest.permission.ACCESS_FINE_LOCATION
-            ) != android.content.pm.PackageManager.PERMISSION_GRANTED
-        ) return
+        if (ContextCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_FINE_LOCATION) != android.content.pm.PackageManager.PERMISSION_GRANTED) return
 
         if (!isRunning && runningTime == 0L) {
             distance = 0f
@@ -185,12 +174,7 @@ fun RunningTrackerScreen(
             .setMinUpdateDistanceMeters(2f)
             .build()
 
-        fusedLocationClient.requestLocationUpdates(
-            request,
-            locationCallback,
-            Looper.getMainLooper()
-        )
-
+        fusedLocationClient.requestLocationUpdates(request, locationCallback, Looper.getMainLooper())
         isRunning = true
     }
 
@@ -204,18 +188,12 @@ fun RunningTrackerScreen(
         onDispose { fusedLocationClient.removeLocationUpdates(locationCallback) }
     }
 
-    val permissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission()
-    ) { granted ->
+    val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
         if (granted) startTracking()
     }
 
     fun requestLocationPermissionAndStart() {
-        val granted = ContextCompat.checkSelfPermission(
-            context,
-            android.Manifest.permission.ACCESS_FINE_LOCATION
-        ) == android.content.pm.PackageManager.PERMISSION_GRANTED
-
+        val granted = ContextCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_FINE_LOCATION) == android.content.pm.PackageManager.PERMISSION_GRANTED
         if (granted) startTracking() else permissionLauncher.launch(android.Manifest.permission.ACCESS_FINE_LOCATION)
     }
 
@@ -230,14 +208,13 @@ fun RunningTrackerScreen(
     fun saveAndSendToCoach() {
         if (runningTime == 0L) return
 
-        caloriesViewModel.addRecord(
-            com.example.fitness.entity.CaloriesRecordEntity(
-                caloriesBurned = caloriesBurned,
-                distance = distance,
-                runningTime = runningTime,
-                timestamp = System.currentTimeMillis()
-            )
+        val record = CaloriesRecordEntity(
+            caloriesBurned = caloriesBurned,
+            distance = distance,
+            runningTime = runningTime,
+            timestamp = System.currentTimeMillis()
         )
+        caloriesViewModel.addRecord(record)
 
         val summary = """
             Tôi vừa chạy xong:
@@ -255,36 +232,109 @@ fun RunningTrackerScreen(
         onNavigateToSave()
     }
 
-    // UI
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(Brush.verticalGradient(listOf(SurfaceStart, SurfaceEnd)))
             .padding(16.dp)
     ) {
-        // Map Card
+        // ── Hiển thị thông tin thử thách (nếu có active) ──
+        activeChallenge?.let { challenge ->
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp),
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                elevation = CardDefaults.cardElevation(6.dp)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            Icons.Filled.Flag,
+                            contentDescription = null,
+                            tint = PrimaryBlue,
+                            modifier = Modifier.size(32.dp)
+                        )
+                        Spacer(Modifier.width(12.dp))
+                        Text(
+                            "Thử thách: ${challenge.name}",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = PrimaryBlue
+                        )
+                    }
+
+                    Spacer(Modifier.height(8.dp))
+
+                    Text(
+                        "Thời gian còn lại: $remainingTime",
+                        fontSize = 16.sp,
+                        color = AccentBlue,
+                        fontWeight = FontWeight.Medium
+                    )
+
+                    val currentDay = getCurrentDayNumber(challenge.startDate, challenge.totalDays)
+                    Text(
+                        "Ngày $currentDay / ${challenge.totalDays}",
+                        fontSize = 14.sp,
+                        color = TextSecondary
+                    )
+
+                    todayGoal?.let { goal ->
+                        Spacer(Modifier.height(8.dp))
+                        Text("Mục tiêu hôm nay: ${goal.description}", fontSize = 14.sp, color = AccentBlue)
+                    }
+
+                    Spacer(Modifier.height(12.dp))
+
+                    LinearProgressIndicator(
+                        progress = { completedDays.toFloat() / challenge.totalDays },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(10.dp)
+                            .clip(RoundedCornerShape(5.dp)),
+                        color = SuccessGreen,
+                        trackColor = Color.LightGray,
+                        strokeCap = StrokeCap.Round
+                    )
+
+                    Spacer(Modifier.height(8.dp))
+
+                    Text(
+                        "$completedDays ngày hoàn thành",
+                        fontSize = 13.sp,
+                        color = SuccessGreen,
+                        modifier = Modifier.align(Alignment.CenterHorizontally)
+                    )
+
+                    Spacer(Modifier.height(16.dp))
+
+                    Button(
+                        onClick = { showEndChallengeDialog = true },
+                        colors = ButtonDefaults.buttonColors(containerColor = WarningRed),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Kết thúc thử thách (Thừa nhận thất bại)", color = Color.White)
+                    }
+                }
+            }
+        }
+
+        // ── Map Card ──
         Card(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth(),
+            modifier = Modifier.weight(1f).fillMaxWidth(),
             shape = RoundedCornerShape(24.dp),
             colors = CardDefaults.cardColors(containerColor = Color.White),
             elevation = CardDefaults.cardElevation(8.dp)
         ) {
             GoogleMap(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .clip(RoundedCornerShape(24.dp)),
+                modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(24.dp)),
                 cameraPositionState = cameraPositionState
             ) {
                 if (pathPoints.size > 1) {
-                    Polyline(
-                        points = pathPoints,
-                        color = PrimaryBlue,
-                        width = 10f
-                    )
+                    Polyline(points = pathPoints, color = PrimaryBlue, width = 10f)
                 }
-
                 pathPoints.lastOrNull()?.let {
                     Marker(
                         state = rememberMarkerState(position = it),
@@ -296,7 +346,7 @@ fun RunningTrackerScreen(
 
         Spacer(Modifier.height(16.dp))
 
-        // Stats Card
+        // ── Stats Card ──
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(20.dp),
@@ -304,13 +354,7 @@ fun RunningTrackerScreen(
             elevation = CardDefaults.cardElevation(6.dp)
         ) {
             Column(modifier = Modifier.padding(20.dp)) {
-                Text(
-                    "Thông số buổi chạy",
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = PrimaryBlue
-                )
-
+                Text("Thông số buổi chạy", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = PrimaryBlue)
                 Spacer(Modifier.height(16.dp))
 
                 Row(Modifier.fillMaxWidth(), Arrangement.SpaceEvenly) {
@@ -332,14 +376,13 @@ fun RunningTrackerScreen(
 
         Spacer(Modifier.height(20.dp))
 
-        // Buttons Row
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             ControlButton(
                 text = "Bắt đầu",
-                icon = Icons.Default.DirectionsRun,
+                icon = Icons.AutoMirrored.Filled.DirectionsRun,
                 enabled = !isRunning,
                 color = PrimaryBlue
             ) { requestLocationPermissionAndStart() }
@@ -379,6 +422,32 @@ fun RunningTrackerScreen(
             }
         )
     }
+
+    // Dialog kết thúc thử thách (chuyển sang bảng xếp hạng sau khi xác nhận)
+    if (showEndChallengeDialog) {
+        AlertDialog(
+            onDismissRequest = { showEndChallengeDialog = false },
+            title = { Text("Kết thúc thử thách sớm?", fontWeight = FontWeight.Bold) },
+            text = { Text("Bạn có chắc chắn muốn thừa nhận thất bại?\nCác tính năng sẽ được mở lại.") },
+            confirmButton = {
+                TextButton(onClick = {
+                    challengeViewModel.endChallengeEarly(context)
+                    showEndChallengeDialog = false
+                    // Chuyển sang bảng xếp hạng
+                    navController.navigate("leaderboard") {
+                        popUpTo("running") { inclusive = false }  // Giữ running trong back stack nếu muốn quay lại
+                    }
+                }) {
+                    Text("Xác nhận thất bại", color = WarningRed)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showEndChallengeDialog = false }) {
+                    Text("Hủy")
+                }
+            }
+        )
+    }
 }
 
 @Composable
@@ -409,15 +478,11 @@ fun ControlButton(
     Button(
         onClick = onClick,
         enabled = enabled,
-        colors = ButtonDefaults.buttonColors(
-            containerColor = if (enabled) color else Color.LightGray
-        ),
+        colors = ButtonDefaults.buttonColors(containerColor = if (enabled) color else Color.LightGray),
         shape = RoundedCornerShape(16.dp),
-        modifier = Modifier
-            .height(56.dp)
-            .graphicsLayer { scaleX = scale.value; scaleY = scale.value }
+        modifier = Modifier.height(56.dp).graphicsLayer { scaleX = scale.value; scaleY = scale.value }
     ) {
-        Icon(icon, null, tint = Color.White)
+        Icon(icon, contentDescription = null, tint = Color.White)
         Spacer(Modifier.width(8.dp))
         Text(text, color = Color.White, fontWeight = FontWeight.SemiBold)
     }

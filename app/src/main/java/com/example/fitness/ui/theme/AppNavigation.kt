@@ -1,18 +1,20 @@
-package com.example.fitness.ui.theme
-
-
+package com.example.fitness.ui.navigation
 
 import CaloriesScreen
 import android.content.Context
 import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -35,24 +37,21 @@ import com.example.fitness.WorkoutType
 import com.example.fitness.camera.AIWorkoutScreen
 import com.example.fitness.camera.DifficultyLevel
 import com.example.fitness.camera.LevelScreen
+import com.example.fitness.data.ChallengeKeys
+import com.example.fitness.data.challengeDataStore
 import com.example.fitness.db.AppDatabase
 import com.example.fitness.intro2.BodyFocusScreen
 import com.example.fitness.intro2.ChonCanNang
 import com.example.fitness.intro2.GoalScreen
 import com.example.fitness.repository.CaloriesRepository
-import com.example.fitness.ui.screens.ChatScreen
-import com.example.fitness.ui.screens.FitnessIntroPager
-import com.example.fitness.ui.screens.ProfileScreen
+import com.example.fitness.ui.screens.*
+import com.example.fitness.ui.theme.BottomNavigationBar
+import com.example.fitness.viewModel.*
+import com.example.fitness.viewModelFactory.*
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.map
 
-import com.example.fitness.ui.screens.RunningTrackerScreen
-import com.example.fitness.viewModel.CaloriesViewModel
-import com.example.fitness.viewModel.ChatViewModel
-import com.example.fitness.viewModel.UserViewModel
-import com.example.fitness.viewModel.WorkoutViewModel
-import com.example.fitness.viewModelFactory.CaloriesViewModelFactory
-import com.example.fitness.viewModelFactory.UserViewModelFactory
-import com.example.fitness.viewModelFactory.WorkoutViewModelFactory
-
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun AppNavigation(
     navController: NavHostController,
@@ -65,183 +64,173 @@ fun AppNavigation(
     val caloriesRepository = CaloriesRepository(db.caloriesRecordDao())
     val caloriesViewModel: CaloriesViewModel = viewModel(factory = CaloriesViewModelFactory(caloriesRepository))
     val workoutViewModel: WorkoutViewModel = viewModel(factory = WorkoutViewModelFactory(db.workoutSessionDao()))
+    val challengeViewModel: ChallengeViewModel = viewModel(factory = ChallengeViewModel.factory(db.challengeDao()))
 
-    val userState by userViewModel.user.collectAsState(initial = null)
+    val userState by userViewModel.user.collectAsStateWithLifecycle(initialValue = null)
     val currentUserId = userState?.id ?: 0
-    val isAdmin = userState?.role == "admin"
+
+    var isChallengeLoading by remember { mutableStateOf(true) }
+    val activeChallenge by challengeViewModel.activeChallenge.collectAsStateWithLifecycle(initialValue = null)
+
+    // Fallback từ DataStore để khóa bottom bar ngay lập tức (ngăn flash mở khóa sau restart)
+    val isLockedFromPrefs by context.challengeDataStore.data
+        .map { preferences -> preferences[ChallengeKeys.IS_CHALLENGE_ACTIVE] ?: false }
+        .collectAsStateWithLifecycle(initialValue = false)
+
+    val hasActiveChallenge = activeChallenge != null || isLockedFromPrefs
+
+    // Reload challenge NGAY KHI APP KHỞI ĐỘNG (sau kill/restart vẫn load sớm)
+    LaunchedEffect(Unit) {
+        challengeViewModel.reloadActiveChallenge()
+        delay(300) // Đợi nhỏ để đảm bảo load xong trước khi UI recompose
+        isChallengeLoading = false
+    }
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
     val noBottomBarRoutes = listOf(
-        "login",
-        "register",
-        "gioithieu",
-        "intro2",
-        "muctieu",
-        "cannang",
-        "workout_session/{planId}",
-        "ai_workout/{levelName}",
-        "history"
+        "login", "register", "gioithieu", "intro2", "muctieu", "cannang",
+        "bmi", "ai_workout/{levelName}", "ai_level_select",
+        "workout_session/{planId}", "history"
     )
 
     Scaffold(
         bottomBar = {
             if (currentRoute !in noBottomBarRoutes) {
-                BottomNavigationBar(navController)
+                BottomNavigationBar(
+                    navController = navController,
+                    hasActiveChallenge = hasActiveChallenge
+                )
             }
-        }
-    ) { paddingValues ->
+        },
+        modifier = modifier
+    ) { innerPadding ->
         NavHost(
             navController = navController,
             startDestination = "login",
-            modifier = Modifier.padding(paddingValues)
+            modifier = Modifier.padding(innerPadding)
         ) {
-            // Authentication & Intro
+            // Authentication & Onboarding
             composable("login") { LoginScreen(navController, userViewModel) }
             composable("register") { RegisterScreen(navController, userViewModel) }
             composable("gioithieu") { FitnessIntroPager(navController) }
-            composable("bmi") { BmiScreen(navController) }
             composable("intro2") { BodyFocusScreen(navController) }
             composable("muctieu") { GoalScreen(navController) }
             composable("cannang") { ChonCanNang(navController) }
+            composable("bmi") { BmiScreen(navController) }
 
-            // Main screens
+            // Main Home & Workout
             composable("home") {
                 MainWorkoutScreen(
                     navController = navController,
-                    onCameraClick = {
-                        // Thay vì vào thẳng camera, ta chuyển đến màn chọn Level trước
-                        navController.navigate("ai_level_select")
-                    }
+                    onCameraClick = { navController.navigate("ai_level_select") }
                 )
             }
 
-            // 2. Thêm màn hình Chọn Level (Mới)
             composable("ai_level_select") {
                 LevelScreen(
                     onLevelSelected = { level ->
-                        // Khi người dùng chọn level (Dễ/Vừa/Khó)
-                        // Ta chuyển sang màn hình Camera và gửi kèm level đó đi
                         navController.navigate("ai_workout/${level.name}")
                     }
                 )
             }
 
-            // 3. Màn hình Camera AI (Nhận Level từ màn hình trước)
             composable(
-                route = "ai_workout/{levelName}",
+                "ai_workout/{levelName}",
                 arguments = listOf(navArgument("levelName") { type = NavType.StringType })
             ) { backStackEntry ->
-                // Lấy level từ đường dẫn, nếu lỗi thì mặc định là EASY
                 val levelName = backStackEntry.arguments?.getString("levelName") ?: "EASY"
-                val level = try {
-                    DifficultyLevel.valueOf(levelName)
-                } catch (e: Exception) { DifficultyLevel.EASY }
-
-                // Gọi màn hình AI Workout (đã tạo ở bước trước)
-                AIWorkoutScreen(
-                    navController = navController,
-                    level = level
-                )
+                val level = DifficultyLevel.values().find { it.name == levelName } ?: DifficultyLevel.EASY
+                AIWorkoutScreen(navController = navController, level = level)
             }
+
             // Plan & Exercise
             composable(
-                route = "plan_detail/{planId}",
+                "plan_detail/{planId}",
                 arguments = listOf(navArgument("planId") { type = NavType.IntType })
             ) { backStackEntry ->
                 val planId = backStackEntry.arguments?.getInt("planId") ?: 0
                 PlanDetailScreen(
                     planId = planId,
                     onBack = { navController.popBackStack() },
-                    onExerciseClick = { exerciseId ->
-                        navController.navigate("exercise_edit/$exerciseId")
-                    },
-                    onStartWorkout = {
-                        navController.navigate("workout_session/$planId")
-                    }
+                    onExerciseClick = { exId -> navController.navigate("exercise_edit/$exId") },
+                    onStartWorkout = { navController.navigate("workout_session/$planId") }
                 )
             }
 
             composable(
-                route = "exercise_edit/{exerciseId}",
+                "exercise_edit/{exerciseId}",
                 arguments = listOf(navArgument("exerciseId") { type = NavType.IntType })
             ) { backStackEntry ->
                 val exerciseId = backStackEntry.arguments?.getInt("exerciseId") ?: 0
-                ExerciseEditScreen(
-                    exerciseId = exerciseId,
-                    onBack = { navController.popBackStack() }
-                )
+                ExerciseEditScreen(exerciseId = exerciseId, onBack = { navController.popBackStack() })
             }
 
-            composable("history") {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    com.example.fitness.ui.screens.HistoryScreen(
-                        navController = navController,
-                        workoutViewModel = workoutViewModel,
-                        userId = currentUserId
-                    )
-                } else {
-                    // Fallback nếu máy Android cũ (tùy chọn)
-                    Text("Yêu cầu Android 8.0 trở lên để xem lịch")
-                }
-            }
             composable(
-                route = "workout_session/{planId}",
+                "workout_session/{planId}",
                 arguments = listOf(navArgument("planId") { type = NavType.IntType })
             ) { backStackEntry ->
                 val planId = backStackEntry.arguments?.getInt("planId") ?: 0
-
                 val startTime = androidx.compose.runtime.saveable.rememberSaveable { System.currentTimeMillis() }
+
                 val workoutName = when (planId) {
-                    1 -> "Bụng Dễ"
+                    1 -> "Bụng Người bắt đầu"
                     2 -> "Bụng Trung bình"
                     3 -> "Bụng Nâng cao"
-                    4 -> "Cánh tay Dễ"
-                    5 -> "Cơ bắp tay Trung bình"
-                    6 -> "Ngực Dễ"
-                    7 -> "Chân Dễ"
+                    4 -> "Cánh tay"
                     else -> "Bài tập $planId"
                 }
 
                 WorkoutSessionScreen(
                     planId = planId,
                     onExit = {
-                        val endTime = System.currentTimeMillis()
-                        val duration = endTime - startTime
-                        // KHI ẤN THOÁT/HOÀN THÀNH -> LƯU TÍCH XANH
-                        // Lưu ý: userId lấy từ biến currentUserId ở đầu hàm AppNavigation
-                        workoutViewModel.markTodayCompleted(currentUserId, workoutName,duration)
-                        navController.popBackStack() }
+                        val duration = System.currentTimeMillis() - startTime
+                        workoutViewModel.markTodayCompleted(currentUserId, workoutName, duration)
+                        navController.popBackStack()
+                    }
                 )
             }
 
-            // Running & Calories
+            // Challenge & Running
+            composable("challenge") { ChallengeScreen(navController) }
+
             composable("running") {
                 RunningTrackerScreen(
                     navController = navController,
                     caloriesViewModel = caloriesViewModel,
-                    onNavigateToSave = {
-                        workoutViewModel.markTodayCompleted(currentUserId, "Running", 0L)
-                        navController.navigate("calories") }
+                    challengeViewModel = challengeViewModel,
+                    onNavigateToSave = { navController.navigate("calories") },
+                    isChallengeLoading = isChallengeLoading  // ← Truyền loading state
                 )
             }
 
-            composable("calories") {
-                CaloriesScreen(navController = navController, caloriesViewModel = caloriesViewModel)
-            }
+            // Calories & History
+            composable("calories") { CaloriesScreen(navController, caloriesViewModel) }
 
             composable("calories_daily_summary") {
                 CaloriesDailySummaryScreen(
-                    records = caloriesViewModel.records.collectAsState().value,
+                    records = caloriesViewModel.records.collectAsStateWithLifecycle().value,
                     navController = navController,
                     onBack = { navController.popBackStack() }
                 )
             }
 
-            // Coach/Chat
+            composable("history") {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    HistoryScreen(
+                        navController = navController,
+                        workoutViewModel = workoutViewModel,
+                        userId = currentUserId
+                    )
+                } else {
+                    Text("Yêu cầu Android 8.0 trở lên để xem lịch sử")
+                }
+            }
+
+            // Coach / Chat
             composable("coach?runSummary={runSummary}") { entry ->
-                val summary = entry.arguments?.getString("runSummary") ?: ""
+                val summary = entry.arguments?.getString("runSummary")?.replace("+", " ") ?: ""
                 val chatViewModel: ChatViewModel = viewModel()
 
                 LaunchedEffect(summary) {
@@ -252,28 +241,21 @@ fun AppNavigation(
                 ChatScreen()
             }
 
-            // Other screens
-            composable("minigame") {
-                MiniGameScreen(navController = navController, db = db)
-            }
-
-            composable(route = "quiz_home") {
-                QuizHomeScreen(navController = navController)
-            }
+            // Other Features
+            composable("leaderboard") { LeaderboardScreen(navController) }
+            composable("minigame") { MiniGameScreen(navController, db) }
+            composable("quiz_home") { QuizHomeScreen(navController) }
 
             composable(
-                route = "quiz_play/{workout}/{level}"
+                "quiz_play/{workout}/{level}",
+                arguments = listOf(
+                    navArgument("workout") { type = NavType.StringType },
+                    navArgument("level") { type = NavType.IntType }
+                )
             ) { backStackEntry ->
                 val workoutName = backStackEntry.arguments?.getString("workout") ?: WorkoutType.FULLBODY.name
-                val workout = WorkoutType.valueOf(workoutName)
-
-                val level = backStackEntry.arguments?.getString("level")?.toIntOrNull() ?: 1
-
-                QuizPlayScreen(
-                    navController = navController,
-                    workout = workout,
-                    level = level
-                )
+                val level = backStackEntry.arguments?.getInt("level") ?: 1
+                QuizPlayScreen(navController, WorkoutType.valueOf(workoutName), level)
             }
 
             composable("profile") {
@@ -285,19 +267,13 @@ fun AppNavigation(
                 )
             }
 
-            // Nếu sau này cần mở rộng các workout type chi tiết (không còn lỗi đỏ)
-            // val workoutTypes = listOf("FULLBODY", "ABS", "CHEST", "ARM")
-            // workoutTypes.forEach { type ->
-            //     composable("workoutDetails/$type?isAdmin={isAdmin}") { entry ->
-            //         val isAdmin = entry.arguments?.getString("isAdmin")?.toBoolean() ?: false
-            //         when (type) {
-            //             "FULLBODY" -> FullBody(navController, exerciseViewModel, isAdmin)
-            //             "ABS"      -> Abs(navController, exerciseViewModel, isAdmin)
-            //             "CHEST"    -> Chest(navController, exerciseViewModel, isAdmin)
-            //             "ARM"      -> Arm(navController, exerciseViewModel, isAdmin)
-            //         }
-            //     }
-            // }
+            composable(
+                "user_detail/{userId}",
+                arguments = listOf(navArgument("userId") { type = NavType.IntType })
+            ) { backStackEntry ->
+                val userId = backStackEntry.arguments?.getInt("userId") ?: 0
+                UserDetailScreen(navController, userId)
+            }
         }
     }
 }
