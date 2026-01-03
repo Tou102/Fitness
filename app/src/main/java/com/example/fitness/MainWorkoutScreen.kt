@@ -65,21 +65,25 @@ data class WorkoutPlan(
 
 // Mock data giữ nguyên
 val allWorkoutPlans = listOf(
-    WorkoutPlan(1, "Bụng Dễ", 10, 5, 1, BodyPart.BUNG, R.drawable.abs1),
-    WorkoutPlan(2, "Bụng Trung bình", 15, 5, 2, BodyPart.BUNG, R.drawable.abs2),
-    WorkoutPlan(3, "Bụng Nâng cao", 15, 5, 3, BodyPart.BUNG, R.drawable.abs3),
-    WorkoutPlan(4, "Cánh tay Dễ", 10, 5, 1, BodyPart.TAY, R.drawable.arm),
-    WorkoutPlan(5, "Cơ bắp tay Trung bình", 25, 18, 2, BodyPart.TAY, R.drawable.hitdat1),
-    WorkoutPlan(6, "Cơ bắp tay Nâng cao", 25, 18, 3, BodyPart.TAY, R.drawable.hitdat1),
-    WorkoutPlan(7, "Ngực Dễ", 20, 15, 1, BodyPart.NGUC, R.drawable.chest1),
-    WorkoutPlan(8, "Ngực Trung bình", 20, 15, 2, BodyPart.NGUC, R.drawable.chest1),
-    WorkoutPlan(9, "Ngực Nâng cao", 20, 15, 3, BodyPart.NGUC, R.drawable.chest1),
-    WorkoutPlan(10, "Chân Dễ", 30, 20, 1, BodyPart.CHAN, R.drawable.leg1),
-    WorkoutPlan(11, "Chân Trung bình", 30, 20, 2, BodyPart.CHAN, R.drawable.leg1),
-    WorkoutPlan(12, "Chân Nâng cao", 30, 20, 3, BodyPart.CHAN, R.drawable.leg1)
-)
+    WorkoutPlan(1, "Bụng Cơ Bản", 10, 13, 1, BodyPart.BUNG, R.drawable.abs1),
+    WorkoutPlan(2, "Bụng Trung Cấp", 15,16 , 2, BodyPart.BUNG, R.drawable.abs2),
+    WorkoutPlan(3, "Bụng Nâng Cao", 15, 16, 3, BodyPart.BUNG, R.drawable.abs3),
 
-// Màu sắc xanh dương đồng bộ
+    WorkoutPlan(4, "Cánh Tay Cơ Bản", 10, 8, 1, BodyPart.TAY, R.drawable.arm),
+    WorkoutPlan(5, "Cánh Tay Trung Cấp", 25, 8, 2, BodyPart.TAY, R.drawable.tay2),
+    WorkoutPlan(6, "Cánh Tay Nâng Cao", 25, 8, 3, BodyPart.TAY, R.drawable.tay),
+
+    WorkoutPlan(7, "Ngực Cơ Bản", 20, 8, 1, BodyPart.NGUC, R.drawable.chest1),
+    WorkoutPlan(8, "Ngực Trung Cấp", 20, 8, 2, BodyPart.NGUC, R.drawable.nguc),
+    WorkoutPlan(9, "Ngực Nâng Cao", 20, 8, 3, BodyPart.NGUC, R.drawable.nguc3),
+
+    WorkoutPlan(10, "Chân Cơ Bản", 30, 8, 1, BodyPart.CHAN, R.drawable.leg1),
+    WorkoutPlan(11, "Chân Trung Cấp", 30, 9, 2, BodyPart.CHAN, R.drawable.chan3),
+    WorkoutPlan(12, "Chân Nâng Cao", 30, 10, 3, BodyPart.CHAN, R.drawable.chan10),
+
+    )
+
+// Màu sắc xanh dương đồng bộa
 private val PrimaryBlue = Color(0xFF0EA5E9)     // Xanh dương neon chính
 private val AccentBlue  = Color(0xFF0284C7)     // Xanh đậm highlight
 private val SurfaceStart = Color(0xFFF0F9FF)
