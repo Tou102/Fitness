@@ -41,7 +41,7 @@ class AIWorkoutViewModel : ViewModel() {
     private var poseLandmarker: PoseLandmarker? = null
     val cameraExecutor: Executor = Executors.newSingleThreadExecutor()
 
-    // Khởi tạo AI (Gọi hàm này từ UI khi vào màn hình)
+
     fun initialize(context: Context, level: DifficultyLevel) {
         setupPoseLandmarker(context)
         startGame(level)
@@ -112,7 +112,7 @@ class AIWorkoutViewModel : ViewModel() {
                 val newCount = counter.process(firstPerson)
                 val newInstruction = counter.getInstruction()
 
-                // Cập nhật UI (State trong Compose tự động thread-safe ở mức cơ bản)
+
                 val currentExercise = workoutSchedule.getOrNull(currentExerciseIndex)
                 if (currentExercise != null) {
                     if (newCount >= currentExercise.targetValue && !isExerciseCompleted) {

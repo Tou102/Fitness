@@ -228,25 +228,13 @@ fun WorkoutHistoryItem(session: WorkoutSession) {
     val dayFormatter = DateTimeFormatter.ofPattern("d 'Th'MM")
 
     val imageRes = when (session.workoutType) {
-        "Bụng Dễ",  "Plan 1" -> R.drawable.abs1
-
-        // Plan 2: Bụng Trung bình
-        "Bụng Trung bình", "Plan 2" -> R.drawable.abs2
-
-        // Plan 3: Bụng Nâng cao
-        "Bụng Nâng cao", "Plan 3" -> R.drawable.abs3
-
-        // Plan 4: Cánh tay Dễ (hoặc tên cũ Cánh tay)
-        "Cánh tay Dễ", "Cánh tay", "Plan 4" -> R.drawable.arm
-
-        // Plan 5: Cơ bắp tay TB
-        "Cơ bắp tay Trung bình", "Plan 5" -> R.drawable.hitdat1 
-
-        // Plan 6: Ngực Dễ
-        "Ngực Dễ", "Plan 6" -> R.drawable.chest1
-
-        // Plan 7: Chân Dễ
-        "Chân Dễ", "Plan 7" -> R.drawable.leg1
+        "Bụng Dễ", "Bụng Người bắt đầu" -> R.drawable.abs1
+        "Bụng Trung bình" -> R.drawable.abs2
+        "Bụng Nâng cao" -> R.drawable.abs3
+        "Cánh tay Dễ", "Cánh tay" -> R.drawable.arm
+        "Cơ bắp tay Trung bình" -> R.drawable.hitdat1
+        "Ngực Dễ" -> R.drawable.chest1
+        "Chân Dễ" -> R.drawable.leg1
         else -> R.drawable.ic_launcher_background
     }
 
@@ -256,7 +244,7 @@ fun WorkoutHistoryItem(session: WorkoutSession) {
 
     Row(modifier = Modifier.fillMaxWidth()) {
         Image(
-            painter = painterResource(id = R.drawable.ic_launcher_background),
+            painter = painterResource(id = imageRes),
             contentDescription = null,
             contentScale = ContentScale.Crop,
             modifier = Modifier.size(60.dp).clip(RoundedCornerShape(12.dp)).background(Color.Gray)

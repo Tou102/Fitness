@@ -21,7 +21,7 @@ import kotlinx.coroutines.delay
 @Composable
 fun AIWorkoutScreen(
     navController: NavController,
-    level: DifficultyLevel = DifficultyLevel.EASY, // Nhận level từ màn hình trước
+    level: DifficultyLevel = DifficultyLevel.EASY,
     viewModel: AIWorkoutViewModel = viewModel()
 ) {
     val context = LocalContext.current
@@ -54,7 +54,7 @@ fun AIWorkoutScreen(
         }
         if (viewModel.instruction.contains("HOÀN TẤT")) {
             delay(2000)
-            navController.popBackStack() // Quay về màn hình trước
+            navController.popBackStack()
         }
     }
 
