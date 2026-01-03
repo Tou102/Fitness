@@ -83,7 +83,7 @@ fun ChatScreen() {
             CenterAlignedTopAppBar(
                 title = {
                     Text(
-                        "Fitness AI Coach",
+                        "Huấn luyện viên",
                         fontWeight = FontWeight.Bold,
                         color = Color.White,
                         fontSize = 20.sp

@@ -1,8 +1,10 @@
 package com.example.fitness.ui.screens
 
 import android.net.Uri
+import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -18,36 +20,39 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
-
 import com.example.fitness.R
 import com.example.fitness.utils.copyUriToInternalStorage
 import com.example.fitness.viewModel.UserViewModel
 import com.example.fitness.viewModel.WorkoutViewModel
 import kotlinx.coroutines.launch
 import java.io.File
+import java.time.LocalDate
 
-// Màu sắc mới: toàn bộ xanh dương
-private val PrimaryBlue = Color(0xFF0EA5E9)      // Xanh dương neon chính
-private val AccentBlue  = Color(0xFF0284C7)      // Xanh đậm highlight
-private val SurfaceStart = Color(0xFFF0F9FF)     // Nền gradient đầu
-private val SurfaceEnd  = Color(0xFFE0F2FE)      // Nền gradient cuối (xanh nhạt)
+// Màu sắc (giữ nguyên như bạn đã định nghĩa)
+private val PrimaryBlue = Color(0xFF0EA5E9)
+private val AccentBlue  = Color(0xFF0284C7)
+private val SurfaceStart = Color(0xFFF0F9FF)
+private val SurfaceEnd  = Color(0xFFE0F2FE)
 private val CardBg      = Color.White.copy(alpha = 0.96f)
 private val TextPrimary = Color(0xFF1A1A1A)
 private val TextSecondary = Color(0xFF6B7280)
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ProfileScreen(
     navController: NavController,
@@ -56,7 +61,6 @@ fun ProfileScreen(
     userId: Int
 ) {
     var showEditDialog by remember { mutableStateOf(false) }
-    var showLeaderboard by remember { mutableStateOf(false) }
     val user by userViewModel.user.collectAsState()
     val coroutineScope = rememberCoroutineScope()
 
@@ -65,19 +69,20 @@ fun ProfileScreen(
     var expandedMenu by remember { mutableStateOf(false) }
     var infoSavedVisible by remember { mutableStateOf(false) }
 
+    // Cập nhật thông tin khi user thay đổi
     LaunchedEffect(user) {
-        val currentUser = user
-        if (currentUser != null) {
-            username = currentUser.nickname ?: currentUser.username ?: "Người dùng"
-            avatarUri = currentUser.avatarUriString?.let { Uri.parse(it) }
-        } else {
-            username = "Người dùng"
-            avatarUri = null
+        user?.let {
+            username = it.nickname ?: it.username ?: "Người dùng"
+            avatarUri = it.avatarUriString?.let { uri -> Uri.parse(uri) }
         }
     }
 
-    LaunchedEffect(userId) {
-        workoutViewModel.loadWeeklySessions(userId)
+    // Tự động reload dữ liệu khi màn hình được resume
+    val lifecycleOwner = LocalLifecycleOwner.current
+    LaunchedEffect(userId, lifecycleOwner) {
+        lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+            workoutViewModel.loadWeeklySessions(userId)
+        }
     }
 
     val weeklySessions by workoutViewModel.weeklySessions.collectAsState(initial = emptyList())
@@ -94,21 +99,19 @@ fun ProfileScreen(
         return
     }
 
-
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(Brush.verticalGradient(listOf(SurfaceStart, SurfaceEnd)))
             .padding(16.dp)
     ) {
-        // Header gradient xanh dương
+        // Header với gradient xanh
         Card(
             modifier = Modifier
                 .fillMaxWidth()
                 .shadow(12.dp, RoundedCornerShape(24.dp)),
             shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White),
-            elevation = CardDefaults.cardElevation(0.dp)
+            colors = CardDefaults.cardColors(containerColor = Color.White)
         ) {
             Box(
                 modifier = Modifier
@@ -120,7 +123,6 @@ fun ProfileScreen(
                     )
                     .padding(24.dp)
             ) {
-                // Menu
                 IconButton(
                     onClick = { expandedMenu = true },
                     modifier = Modifier.align(Alignment.TopStart)
@@ -146,8 +148,7 @@ fun ProfileScreen(
 
                 Column(
                     modifier = Modifier.align(Alignment.Center),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Box(
                         modifier = Modifier
@@ -161,7 +162,8 @@ fun ProfileScreen(
                                 modifier = Modifier
                                     .size(100.dp)
                                     .clip(CircleShape)
-                                    .align(Alignment.Center)
+                                    .align(Alignment.Center),
+                                contentScale = ContentScale.Crop
                             )
                         } else {
                             Image(
@@ -198,7 +200,7 @@ fun ProfileScreen(
 
         Spacer(Modifier.height(24.dp))
 
-        // 3 nút hành động (BMI, Mini Game, Calo)
+        // 3 nút hành động nhanh
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly
@@ -236,25 +238,39 @@ fun ProfileScreen(
 
         Spacer(Modifier.height(24.dp))
 
-        // Bảng xếp hạng
+        // Nút Bảng xếp hạng - đã kết nối đầy đủ
         Button(
-            onClick = { showLeaderboard = true },
+            onClick = { navController.navigate("leaderboard") },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp),
             shape = RoundedCornerShape(16.dp),
             colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue)
         ) {
-            Text(
-                "Bảng xếp hạng",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.White
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Icon(
+                    Icons.Default.Leaderboard,
+                    contentDescription = null,
+                    tint = Color.White,
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(Modifier.width(12.dp))
+                Text(
+                    "Bảng xếp hạng",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
+            }
         }
+
+        Spacer(Modifier.height(16.dp))
     }
 
-    // Edit Dialog (đồng bộ màu xanh)
+    // Dialog chỉnh sửa hồ sơ
     if (showEditDialog) {
         var tempUsername by remember(user) { mutableStateOf(username) }
         var tempAvatarUri by remember(user) { mutableStateOf(avatarUri) }
@@ -302,7 +318,8 @@ fun ProfileScreen(
                             AsyncImage(
                                 model = tempAvatarUri,
                                 contentDescription = "Ảnh đại diện",
-                                modifier = Modifier.fillMaxSize().clip(CircleShape)
+                                modifier = Modifier.fillMaxSize().clip(CircleShape),
+                                contentScale = ContentScale.Crop
                             )
                         } else {
                             Image(
@@ -334,6 +351,7 @@ fun ProfileScreen(
     }
 }
 
+// Các composable phụ trợ (giữ nguyên từ code của bạn)
 @Composable
 fun ActionButton(
     icon: ImageVector,
@@ -371,23 +389,22 @@ fun ActionButton(
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun WeeklyWorkoutSchedule(
     weeklySchedule: Map<String, Boolean>,
     modifier: Modifier = Modifier,
-    onHistoryClick: () -> Unit // Tham số click
+    onHistoryClick: () -> Unit
 ) {
     Card(
         modifier = modifier
             .fillMaxWidth()
             .shadow(8.dp, RoundedCornerShape(20.dp))
-            .clickable { onHistoryClick() }, // Click vào cả thẻ
+            .clickable { onHistoryClick() },
         shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = CardBg),
-        elevation = CardDefaults.cardElevation(0.dp)
+        colors = CardDefaults.cardColors(containerColor = CardBg)
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
-            // Header hàng ngang
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -402,13 +419,32 @@ fun WeeklyWorkoutSchedule(
             Spacer(Modifier.height(16.dp))
             Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
                 val days = listOf("T2", "T3", "T4", "T5", "T6", "T7", "CN")
-                days.forEach { day ->
+                val todayIndex = LocalDate.now().dayOfWeek.value - 1  // Thứ 2 = 0, CN = 6
+
+                days.forEachIndexed { index, day ->
                     val isWorkout = weeklySchedule[day] ?: false
+                    val isToday = index == todayIndex
+
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(day, fontSize = 14.sp, color = TextSecondary)
+                        Text(
+                            text = day,
+                            fontSize = 14.sp,
+                            color = if (isToday) PrimaryBlue else TextSecondary,
+                            fontWeight = if (isToday) FontWeight.Bold else FontWeight.Normal
+                        )
                         Spacer(Modifier.height(8.dp))
-                        Box(modifier = Modifier.size(36.dp).background(if (isWorkout) Color(0xFF10B981) else Color.LightGray.copy(0.3f), CircleShape), contentAlignment = Alignment.Center) {
-                            if (isWorkout) Icon(Icons.Default.FitnessCenter, null, tint = Color.White, modifier = Modifier.size(20.dp))
+                        Box(
+                            modifier = Modifier
+                                .size(36.dp)
+                                .background(
+                                    if (isWorkout) Color(0xFF10B981) else Color.LightGray.copy(0.3f),
+                                    CircleShape
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            if (isWorkout) {
+                                Icon(Icons.Default.Check, null, tint = Color.White, modifier = Modifier.size(24.dp))
+                            }
                         }
                     }
                 }
