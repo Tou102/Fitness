@@ -30,7 +30,7 @@ class SquatCounter : RepCounter {
             }
             SquatState.DOWN -> {
                 instruction = "Đứng lên! ⬆️"
-                if (kneeAngle > 150) {   // đứng thẳng lại
+                if (kneeAngle > 150) {
                     repCount++
                     state = SquatState.UP
                     instruction = "Tuyệt vời! Tiếp tục 🔥"

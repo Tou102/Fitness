@@ -14,7 +14,7 @@ class PushUpCounter : RepCounter {
 
     override fun process(landmarks: List<NormalizedLandmark>): Int {
         // Lấy các điểm mốc bên TRÁI (Left): Vai(11), Khuỷu(13), Cổ tay(15)
-        // (Lưu ý: Logic xịn hơn thì nên check xem người dùng quay bên nào để lấy trái/phải)
+
         val shoulder = landmarks[11]
         val elbow = landmarks[13]
         val wrist = landmarks[15]
@@ -22,7 +22,7 @@ class PushUpCounter : RepCounter {
         // Tính góc khuỷu tay
         val angle = PoseUtils.calculateAngle(shoulder, elbow, wrist)
 
-        // Máy trạng thái (State Machine)
+
         if (angle < DOWN_ANGLE) {
             // Đang xuống sâu
             isDown = true
@@ -30,7 +30,7 @@ class PushUpCounter : RepCounter {
         } else if (angle > UP_ANGLE) {
             // Đang tay thẳng
             if (isDown) {
-                // Nếu trước đó đã xuống -> Giờ lên -> Tính 1 cái
+
                 count++
                 isDown = false // Reset trạng thái
                 currentInstruction = "Tốt! Xuống tiếp"

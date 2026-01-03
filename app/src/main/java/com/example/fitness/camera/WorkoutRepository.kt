@@ -6,8 +6,8 @@ object WorkoutRepository {
     fun getWorkoutPlan(level: DifficultyLevel): List<ExerciseScheduleItem> {
         return when (level) {
             DifficultyLevel.EASY -> listOf( // --- MỨC 1 ---
-                ExerciseScheduleItem(1, "Hít đất 1", ExerciseType.PUSH_UP, targetValue = 2, unit = "cái"),
-                ExerciseScheduleItem(2, "Squat 1", ExerciseType.SQUAT, targetValue = 2, unit = "cái"),
+                ExerciseScheduleItem(1, "Hít đất 1", ExerciseType.PUSH_UP, targetValue = 5, unit = "cái"),
+                ExerciseScheduleItem(2, "Squat 1", ExerciseType.SQUAT, targetValue = 5, unit = "cái"),
                 ExerciseScheduleItem(3, "Plank 1", ExerciseType.PLANK, targetValue = 30, unit = "giây") // Plank 30s
             )
 

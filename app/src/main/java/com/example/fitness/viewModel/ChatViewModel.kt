@@ -22,6 +22,7 @@ class ChatViewModel : ViewModel() {
         - Không chào hỏi hay kết thúc kiểu xã giao.
         - Nếu khen thì khen thật, nếu sửa thì sửa rõ ràng kèm cách khắc phục tích cực.
         - Luôn tạo cảm giác học viên đang được hướng dẫn tận tình.
+        
     """.trimIndent()
 
     fun sendMessage(question: String) {

@@ -194,10 +194,13 @@ fun AppNavigation(
 
                 val startTime = androidx.compose.runtime.saveable.rememberSaveable { System.currentTimeMillis() }
                 val workoutName = when (planId) {
-                    1 -> "Bụng Người bắt đầu"
+                    1 -> "Bụng Dễ"
                     2 -> "Bụng Trung bình"
                     3 -> "Bụng Nâng cao"
-                    4 -> "Cánh tay" // Hoặc tên khác tùy menu của bạn
+                    4 -> "Cánh tay Dễ"
+                    5 -> "Cơ bắp tay Trung bình"
+                    6 -> "Ngực Dễ"
+                    7 -> "Chân Dễ"
                     else -> "Bài tập $planId"
                 }
 
